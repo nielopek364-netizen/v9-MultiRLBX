@@ -1,0 +1,2601 @@
+<!doctype html>
+<html lang="pl" class="dark" data-accent="Emerald">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>v9 MultiRLBX - v1.0.0 · by v9pv</title>
+<style>
+  :root{
+    --bg:#f8fafc; --bg-card:#ffffff; --bg-sub:#f1f5f9; --bg-input:#f8fafc;
+    --border:#e2e8f0; --border-strong:#cbd5e1;
+    --text:#0f172a; --text-2:#334155; --muted:#64748b;
+    --accent:#10b981; --accent-hover:#059669; --accent-soft:rgba(16,185,129,.12); --accent-ink:#ffffff;
+    --danger:#f43f5e; --danger-soft:rgba(244,63,94,.12); --danger-text:#e11d48;
+    --warn:#f59e0b; --good:#10b981;
+    --shadow:0 1px 2px rgba(15,23,42,.05);
+    --font:'Segoe UI Variable','Segoe UI',system-ui,-apple-system,sans-serif;
+    --mono:'JetBrains Mono','Cascadia Code','Consolas',ui-monospace,monospace;
+  }
+  html{color-scheme:light}
+  html.dark{
+    color-scheme:dark;
+    --bg:#0B0F17; --bg-card:rgba(15,23,42,.74); --bg-sub:rgba(15,23,42,.95); --bg-input:#020617;
+    --border:#1e293b; --border-strong:#334155;
+    --text:#f1f5f9; --text-2:#cbd5e1; --muted:#94a3b8;
+    --danger-soft:rgba(136,19,55,.28); --danger-text:#fda4af;
+    --shadow:0 4px 20px rgba(0,0,0,.25);
+  }
+  [data-accent="Emerald"]{--accent:#10B981;--accent-hover:#059669;--accent-soft:rgba(16,185,129,.14)}
+  [data-accent="Blue"]{--accent:#3B82F6;--accent-hover:#2563EB;--accent-soft:rgba(59,130,246,.14)}
+  [data-accent="Purple"]{--accent:#8B5CF6;--accent-hover:#7C3AED;--accent-soft:rgba(139,92,246,.14)}
+  [data-accent="Amber"]{--accent:#F59E0B;--accent-hover:#D97706;--accent-soft:rgba(245,158,11,.14)}
+  [data-accent="Rose"]{--accent:#F43F5E;--accent-hover:#E11D48;--accent-soft:rgba(244,63,94,.14)}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  body{display:flex;flex-direction:column;min-height:100vh}
+  button,input,select,textarea{font-family:inherit;color:inherit}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  /* Shell Layout (No Redundant Top Bar) */
+  .shell{flex:1;display:flex;min-height:100vh}
+  .sidebar{
+    width:248px;flex-shrink:0;border-right:1px solid var(--border);
+    background:var(--bg-card);padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:14px
+  }
+  .side-brand{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:4px 10px 12px;margin-bottom:10px;border-bottom:1px solid var(--border)
+  }
+  .brand-wrap{display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .brand{font-size:15.5px;font-weight:700;letter-spacing:-.02em;cursor:pointer;text-decoration:none;color:var(--text)}
+  .ver-tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);padding:1px 6px;border-radius:5px;border:1px solid var(--border)}
+  .conn-dot{width:8px;height:8px;border-radius:999px;background:var(--warn);display:inline-block;flex-shrink:0}
+  .conn-dot.ok{background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2)}
+  .conn-dot.err{background:#ef4444}
+  .side-group{margin-bottom:14px}
+  .side-group-lbl{padding:0 12px 6px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .side-nav{display:flex;flex-direction:column;gap:3px}
+  .side-btn{
+    display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:0;
+    background:transparent;color:var(--text-2);font-size:13px;font-weight:500;cursor:pointer;
+    text-align:left;white-space:nowrap;transition:background .15s,color .15s
+  }
+  .side-btn:hover{background:var(--bg-sub);color:var(--text)}
+  .side-btn.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .side-footer{border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:10px}
+  .side-controls{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .method-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .method-card{
+    display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:13px 14px;
+    border-radius:10px;border:1px solid var(--border-strong);background:var(--bg-sub);
+    color:var(--text);cursor:pointer;text-align:left;transition:border-color .15s,background .15s
+  }
+  .method-card:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .method-card strong{font-size:13px;font-weight:700}
+  .method-card span{font-size:11.5px;color:var(--muted);line-height:1.35}
+
+  /* Main Workspace */
+  .workspace{flex:1;min-width:0;overflow-y:auto;padding:24px 32px}
+  .ws-inner{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+
+  /* Pill Switch & Accent Dots */
+  .pill-switch{
+    display:inline-flex;padding:2px;border-radius:8px;border:1px solid var(--border);background:var(--bg-sub)
+  }
+  .pill-btn{
+    border:0;background:transparent;padding:4px 9px;border-radius:6px;font-size:11.5px;font-weight:600;
+    color:var(--muted);cursor:pointer;text-transform:uppercase;transition:background .15s,color .15s
+  }
+  .pill-btn.active{background:var(--bg-card);color:var(--text);box-shadow:var(--shadow)}
+  .accent-dots{display:flex;align-items:center;gap:10px}
+  .accent-dot{
+    width:22px;height:22px;border-radius:999px;border:0;cursor:pointer;opacity:.82;
+    transition:transform .15s,opacity .15s
+  }
+  .accent-dot:hover{opacity:1}
+  .accent-dot.active{opacity:1;transform:scale(1.08);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--text)}
+
+  /* Sub-Tabs inside Consolidated Sections */
+  .subtabs{
+    display:inline-flex;gap:4px;padding:4px;border-radius:10px;border:1px solid var(--border);
+    background:var(--bg-card);align-self:flex-start
+  }
+  .subtab-btn{
+    border:0;background:transparent;padding:7px 14px;border-radius:7px;font-size:12.5px;font-weight:600;
+    color:var(--muted);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap
+  }
+  .subtab-btn:hover{color:var(--text)}
+  .subtab-btn.active{background:var(--accent);color:var(--accent-ink)}
+  .subpanel{display:none;flex-direction:column;gap:18px}
+  .subpanel.active{display:flex}
+
+  /* Buttons & Inputs */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    padding:8px 14px;border-radius:8px;border:1px solid var(--border-strong);
+    background:var(--bg-card);color:var(--text);font-size:12.5px;font-weight:600;
+    cursor:pointer;white-space:nowrap;transition:background .15s,opacity .15s
+  }
+  .btn:hover{background:var(--bg-sub)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-danger{background:var(--danger-soft);border-color:rgba(244,63,94,.35);color:var(--danger-text)}
+  .btn-danger:hover{opacity:.9}
+  .btn-sm{padding:6px 11px;font-size:12px}
+  .btn-xs{padding:4px 9px;font-size:11.5px;border-radius:6px}
+  .icon{width:15px;height:15px;flex-shrink:0}
+  .icon-sm{width:13px;height:13px;flex-shrink:0}
+
+  .inp,select,textarea{
+    width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border-strong);
+    background:var(--bg-input);color:var(--text);font-size:13px;outline:none;transition:border-color .15s
+  }
+  .inp:focus,select:focus,textarea:focus{border-color:var(--accent)}
+  input[type="checkbox"],input[type="range"]{accent-color:var(--accent);cursor:pointer}
+  input[type="range"]{width:100%}
+
+  /* Cards, Headings & Grids */
+  .view{display:none;flex-direction:column;gap:18px}.view.active{display:flex}
+  .page-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+  .page-title{margin:0;font-size:23px;font-weight:700;letter-spacing:-.02em}
+  .page-sub{margin:3px 0 0;font-size:13px;color:var(--muted);max-width:680px}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow)}
+  .card-tight{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:var(--shadow)}
+  .card-table{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  .card-title{margin:0 0 12px;font-size:14px;font-weight:600}
+  .grid{display:grid;gap:18px}
+  .g12{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .col-4{grid-column:span 4}.col-5{grid-column:span 5}.col-7{grid-column:span 7}.col-8{grid-column:span 8}.col-12{grid-column:span 12}
+  .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field label{font-size:12px;font-weight:600;color:var(--text-2);display:flex;justify-content:space-between;align-items:center}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .between{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .muted{color:var(--muted);font-size:12px}
+  .chk-row{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text-2);cursor:pointer}
+  .chk-row input{width:15px;height:15px}
+
+  /* Filter Pills */
+  .filter-pills{display:flex;align-items:center;gap:6px;overflow-x:auto}
+  .f-pill{
+    padding:6px 12px;border-radius:6px;border:0;background:transparent;color:var(--muted);
+    font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap
+  }
+  .f-pill:hover{background:var(--bg-sub);color:var(--text)}
+  .f-pill.active{background:#0f172a;color:#ffffff}
+  html.dark .f-pill.active{background:#f1f5f9;color:#0f172a}
+
+  /* Tables */
+  .tbl-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;text-align:left}
+  th{
+    padding:11px 14px;font-size:12px;font-weight:600;color:var(--muted);
+    background:var(--bg-sub);border-bottom:1px solid var(--border);white-space:nowrap
+  }
+  td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover td{background:rgba(148,163,184,.06)}
+  .st-online{color:#10b981;font-weight:600}
+  .st-idle{color:var(--text-2);font-weight:500}
+  .st-warn{color:#f59e0b;font-weight:600}
+  .st-bad{color:#f43f5e;font-weight:600}
+
+  .kpi-val{font-size:23px;font-weight:700;margin-top:4px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  .seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:8px;background:var(--bg-input);border:1px solid var(--border)}
+  .seg-btn{
+    padding:6px 12px;border-radius:6px;border:0;background:transparent;color:var(--muted);
+    font-size:12px;font-weight:600;cursor:pointer
+  }
+  .seg-btn.active{background:var(--bg-card);color:var(--text);box-shadow:var(--shadow)}
+  .code-box{
+    background:#020617;color:#6ee7b7;border:1px solid #1e293b;border-radius:8px;
+    padding:16px;font-family:var(--mono);font-size:12px;line-height:1.6;overflow:auto;margin:0;flex:1;min-height:280px
+  }
+
+  .layout-canvas{
+    position:relative;width:100%;aspect-ratio:1920/1040;border-radius:10px;
+    background:#020617;border:1px solid #1e293b;overflow:hidden
+  }
+  .tile-box{
+    position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(15,23,42,.9);color:#f1f5f9;font-size:12px;overflow:hidden;text-align:center;padding:4px
+  }
+  .tile-box.borderless{border:1px solid var(--accent)}
+  .tile-box.framed{border:2px solid #64748b;border-radius:4px}
+
+  .banner{
+    padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:500;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    border:1px solid rgba(16,185,129,.35);background:rgba(16,185,129,.1);color:#059669
+  }
+  html.dark .banner{color:#6ee7b7}
+  .banner.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#d97706}
+  html.dark .banner.warn{color:#fcd34d}
+  .banner.err{border-color:rgba(244,63,94,.35);background:rgba(244,63,94,.1);color:#e11d48}
+  html.dark .banner.err{color:#fda4af}
+
+  .modal-back{
+    position:fixed;inset:0;z-index:60;background:rgba(2,6,23,.7);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;padding:20px
+  }
+  .modal-back.open{display:flex}
+  .modal{
+    width:100%;max-width:560px;background:var(--bg-card);border:1px solid var(--border);
+    border-radius:16px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.4)
+  }
+  .modal.modal-lg{max-width:680px}
+  html.dark .modal{background:#0f172a}
+  .qr-frame{
+    width:184px;height:184px;border-radius:12px;background:#ffffff;padding:8px;
+    display:flex;align-items:center;justify-content:center;border:1px solid var(--border);flex-shrink:0
+  }
+  .qr-frame svg{width:100%;height:100%;display:block}
+  .toast{
+    position:fixed;bottom:22px;right:22px;z-index:70;padding:10px 16px;border-radius:10px;
+    border:1px solid var(--border-strong);background:var(--bg-card);color:var(--text);
+    box-shadow:0 10px 30px rgba(0,0,0,.3);font-size:13px;font-weight:500;display:none;max-width:420px
+  }
+  .toast.show{display:block}
+  html.dark .toast{background:#0f172a}
+
+  .spin{animation:spin 1s linear infinite}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+  .tile-title{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2}
+  .tile-sub{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px}
+
+  .onb-bars{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+  .onb-bar{height:5px;border-radius:999px;background:var(--border);border:0;padding:0;cursor:pointer}
+  .onb-bar.active{background:var(--accent)}
+  .onb-hero{display:flex;align-items:flex-start;gap:14px}
+  .onb-quote{margin:8px 0 6px;padding:8px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg-sub);font-size:12px;font-style:italic;color:var(--text-2)}
+  .onb-list{margin:12px 0;padding:4px 0;display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:var(--text-2)}
+  .acc-cell{display:flex;align-items:center;gap:11px;min-width:0}
+  .acc-portrait-box{
+    width:38px;height:38px;flex-shrink:0;border-radius:8px;border:1px solid var(--border-strong);
+    background:#0f172a;overflow:hidden;display:flex;align-items:center;justify-content:center
+  }
+  .acc-portrait-box img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+  .acc-portrait{flex-shrink:0;display:block}
+  .acc-tags{margin-top:3px;display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  .gp-selected{
+    display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:10px;
+    border:1px solid var(--accent);background:var(--accent-soft);margin-bottom:14px
+  }
+  .gp-thumb{
+    width:60px;height:60px;border-radius:10px;overflow:hidden;flex-shrink:0;
+    background:#0f172a;border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center
+  }
+  .gp-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .gp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .gp-card{
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;
+    border:1px solid var(--border);background:var(--bg-sub);cursor:pointer;text-align:left;
+    transition:border-color .15s,background .15s;min-width:0
+  }
+  .gp-card:hover{border-color:var(--accent)}
+  .gp-card.active{border-color:var(--accent);background:var(--accent-soft)}
+  .gp-card-thumb{
+    width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;
+    background:#0f172a;border:1px solid var(--border)
+  }
+  .gp-card-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+
+  @media(max-width:1024px){
+    .shell{flex-direction:column}
+    .sidebar{width:100%;border-right:0;border-bottom:1px solid var(--border);padding:12px}
+    .side-group-lbl,.side-sys-meta{display:none}
+    .side-group{margin:0 0 6px}
+    .side-nav{flex-direction:row;overflow-x:auto}
+    .side-footer{flex-direction:row;align-items:center;justify-content:space-between;padding-top:8px}
+    .workspace{padding:18px}
+    .col-4,.col-5,.col-7,.col-8{grid-column:span 12}
+    .g4,.gp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .g2,.g3,.method-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- Clean Sidebar Shell (No Redundant Top Utility Bar) -->
+  <aside class="sidebar">
+    <div>
+      <div class="side-brand">
+        <div class="brand-wrap">
+          <span class="conn-dot" id="connDot" title="LocalUiServer (127.0.0.1)"></span>
+          <a href="#accounts" class="brand" onclick="event.preventDefault();switchTab('accounts')">v9 MultiRLBX</a>
+        </div>
+        <span class="ver-tag">v1.0.0</span>
+      </div>
+
+      <div class="side-group">
+        <div class="side-group-lbl" data-t="grp_farm">Farma</div>
+        <nav class="side-nav">
+          <button type="button" class="side-btn active" data-tab="accounts" onclick="switchTab('accounts')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span data-t="nav_accounts">Konta</span>
+          </button>
+          <button type="button" class="side-btn" data-tab="launch" onclick="switchTab('launch')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>
+            <span data-t="nav_launch_srv">Start &amp; Serwery</span>
+          </button>
+          <button type="button" class="side-btn" data-tab="monitor" onclick="switchTab('monitor')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
+            <span data-t="nav_mon_win">Monitor &amp; Okna</span>
+          </button>
+          <button type="button" class="side-btn" data-tab="afk" onclick="switchTab('afk')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span data-t="nav_afk">Anti-AFK &amp; Ochrona</span>
+          </button>
+          <button type="button" class="side-btn" data-tab="presets" onclick="switchTab('presets')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            <span data-t="nav_presets">Makra (.v9m) &amp; Presety</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="side-group">
+        <div class="side-group-lbl" data-t="grp_sys">System</div>
+        <nav class="side-nav">
+          <button type="button" class="side-btn" data-tab="settings" onclick="switchTab('settings')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span data-t="nav_settings_logs">Ustawienia &amp; Logi</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <div class="side-footer">
+      <div class="muted mono side-sys-meta" id="topQueueText" style="display:none;color:var(--accent)"></div>
+      <div class="muted mono side-sys-meta" id="sideSysStats">RAM: - | Okna: 0</div>
+      <div class="side-controls">
+        <div class="pill-switch" title="Language">
+          <button type="button" class="pill-btn active" id="langPl" onclick="setLanguage('pl')">PL</button>
+          <button type="button" class="pill-btn" id="langEn" onclick="setLanguage('en')">EN</button>
+        </div>
+        <button type="button" class="btn btn-xs" id="themeBtn" onclick="toggleTheme()">
+          <svg class="icon-sm" id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <span id="themeText">Ciemny</span>
+        </button>
+      </div>
+      <button type="button" class="btn btn-xs" style="width:100%" id="guideBtn" onclick="openOnboarding(0)" data-t="btn_guide">Samouczek</button>
+      <a href="https://github.com/nielopek364-netizen/" target="_blank" rel="noopener" class="muted mono side-sys-meta" style="font-size:11px;text-decoration:none">v9pv · github.com/nielopek364-netizen</a>
+    </div>
+  </aside>
+
+  <!-- Main Workspace -->
+  <main class="workspace">
+    <div class="ws-inner">
+      <div id="connBanner" class="banner err" style="display:none">
+        <span data-t="conn_err">Brak połączenia z lokalnym serwerem MultiRLBX (127.0.0.1).</span>
+        <button type="button" class="btn btn-xs" onclick="refresh()" data-t="btn_refresh">Odśwież</button>
+      </div>
+      <div id="robloxBanner" class="banner warn" style="display:none">
+        <span data-t="warn_no_roblox">Nie wykryto lokalnego RobloxPlayerBeta.exe (uruchamianie przez protokół roblox-player: pozostaje aktywne).</span>
+      </div>
+
+      <!-- 1. ACCOUNTS VIEW -->
+      <section class="view active" id="v-accounts">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title" data-t="acc_title">Konta i Grupy</h1>
+            <p class="page-sub" data-t="acc_sub">Zarządzaj profilami Roblox, sprawdzaj ważność cookies równolegle i uruchamiaj grupy z opóźnieniem.</p>
+          </div>
+          <div class="row">
+            <button type="button" class="btn btn-primary" onclick="launchSelectedOrAll()">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+              <span><span data-t="btn_launch_sel">Uruchom zaznaczone</span> (<span id="selCount">0</span>)</span>
+            </button>
+            <button type="button" class="btn btn-danger" onclick="stopAll()">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>
+              <span data-t="btn_stop_all">Zatrzymaj wszystko</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-tight between">
+          <div class="row" style="flex:1">
+            <div style="position:relative;flex:1;min-width:200px;max-width:300px">
+              <svg class="icon-sm" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input class="inp" id="accSearch" style="padding-left:34px" data-ph="acc_search_ph" placeholder="Szukaj konta, aliasu lub grupy..." oninput="renderAccounts()">
+            </div>
+            <div class="filter-pills" id="groupPills"></div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn btn-primary btn-sm" id="authHubBtn" onclick="openAuth('pick')" data-t="btn_auth_hub">+ Zaloguj / Dodaj</button>
+            <button type="button" class="btn btn-sm" id="chkCookiesBtn" onclick="checkAllCookies()">
+              <svg class="icon-sm" id="chkIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              <span data-t="btn_check_cookies">Sprawdź cookies</span>
+            </button>
+            <button type="button" class="btn btn-sm" id="chkPresenceBtn" onclick="checkAllPresence()" data-t="btn_check_presence">Sprawdź Presence</button>
+          </div>
+        </div>
+
+        <div class="card-table">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:40px"><input type="checkbox" id="selAll" onchange="toggleAllSel(this.checked)"></th>
+                  <th data-t="col_acc">Konto</th>
+                  <th data-t="col_grp">Grupa</th>
+                  <th data-t="col_status">Status</th>
+                  <th style="text-align:right" data-t="col_res">Zasoby (CPU / RAM)</th>
+                  <th style="text-align:right" data-t="col_target">Place / FPS / Delay</th>
+                  <th style="text-align:right" data-t="col_act">Akcje</th>
+                </tr>
+              </thead>
+              <tbody id="accBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. START & SERVERS VIEW (Consolidated with Sub-Tabs) -->
+      <section class="view" id="v-launch">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title" data-t="l_title">Start &amp; Serwery</h1>
+            <p class="page-sub" data-t="l_sub">Konfiguruj tryb wejścia, profil FastFlags (ClientAppSettings.json) i wybieraj serwery publiczne.</p>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" onclick="saveQuickSettings()" data-t="btn_save_cfg">Zapisz konfigurację</button>
+            <button type="button" class="btn btn-primary" onclick="launchWithSpec(false)" data-t="l_queue_btn">Uruchom wybraną grupę</button>
+            <button type="button" class="btn" onclick="launchWithSpec(true)" data-t="btn_launch_all">Uruchom wszystkie</button>
+          </div>
+        </div>
+
+        <div class="subtabs">
+          <button type="button" class="subtab-btn active" data-sub="launch-cfg" onclick="switchSub('launch','launch-cfg')" data-t="sub_launch_cfg">Konfiguracja &amp; FastFlags</button>
+          <button type="button" class="subtab-btn" data-sub="launch-srv" onclick="switchSub('launch','launch-srv')" data-t="sub_launch_srv">Przeglądarka serwerów</button>
+        </div>
+
+        <div class="subpanel active" id="sub-launch-cfg">
+          <div class="card" id="gamePickerCard">
+            <div class="between" style="margin-bottom:12px">
+              <div>
+                <h2 class="card-title" style="margin:0" data-t="gp_title">Wybór gry Roblox (Game Picker)</h2>
+                <p class="muted" style="margin:2px 0 0" data-t="gp_sub">Przeglądaj popularne gry, szukaj po nazwie lub wklej Place ID / link, aby podejrzeć szczegóły.</p>
+              </div>
+              <form class="row" style="flex-wrap:nowrap" onsubmit="event.preventDefault();loadGameDirectory(document.getElementById('gameSearchInput').value)">
+                <input class="inp" id="gameSearchInput" style="width:220px" data-ph="gp_search_ph" placeholder="Szukaj gry lub Place ID...">
+                <button type="submit" class="btn btn-primary btn-sm" id="gameSearchBtn" data-t="gp_search_btn">Szukaj</button>
+                <button type="button" class="btn btn-sm" id="gameTrendBtn" onclick="document.getElementById('gameSearchInput').value='';loadGameDirectory('')" data-t="gp_trend_btn">Popularne</button>
+              </form>
+            </div>
+            <div id="selectedGameCard" class="gp-selected" style="display:none"></div>
+            <div id="gamePickerGrid" class="gp-grid"></div>
+          </div>
+
+          <div class="grid g12">
+            <div class="card col-7">
+              <div class="field">
+                <label data-t="l_mode">Tryb dołączania</label>
+                <div class="seg" id="modeSeg">
+                  <button type="button" class="seg-btn active" data-mode="Game" onclick="setLaunchMode('Game')" data-t="mode_game">Gra (Game)</button>
+                  <button type="button" class="seg-btn" data-mode="Job" onclick="setLaunchMode('Job')" data-t="mode_job">Serwer (Job ID)</button>
+                  <button type="button" class="seg-btn" data-mode="Private" onclick="setLaunchMode('Private')" data-t="mode_private">Serwer prywatny</button>
+                  <button type="button" class="seg-btn" data-mode="Follow" onclick="setLaunchMode('Follow')" data-t="mode_follow">Dołącz do gracza</button>
+                </div>
+              </div>
+
+              <div class="grid g2">
+                <div class="field">
+                  <label data-t="l_place">Place ID lub URL gry Roblox</label>
+                  <input class="inp mono" id="l-place" placeholder="155615604" oninput="onPlaceInput()">
+                  <span class="muted mono" id="l-place-parsed">Place ID: -</span>
+                </div>
+                <div class="field">
+                  <label data-t="l_job">Job ID serwera (opcjonalnie)</label>
+                  <input class="inp mono" id="l-job" placeholder="c8f102a9-41bd-49e8-...">
+                </div>
+              </div>
+
+              <div class="grid g2">
+                <div class="field">
+                  <label data-t="l_priv">Link VIP / Private Server</label>
+                  <input class="inp" id="l-priv" placeholder="https://www.roblox.com/share?code=...">
+                </div>
+                <div class="field">
+                  <label data-t="l_follow">Nazwa gracza (Follow)</label>
+                  <input class="inp" id="l-follow" placeholder="Username">
+                </div>
+              </div>
+
+              <div class="grid g2">
+                <div class="field">
+                  <label><span data-t="l_delay">Odstęp uruchomień (s)</span><span class="mono" id="s-delay-lbl">8s</span></label>
+                  <input type="range" id="s-delay" min="0" max="30" value="8" oninput="document.getElementById('s-delay-lbl').textContent=this.value+'s'">
+                </div>
+                <div class="field">
+                  <label><span data-t="l_fps">Limit FPS kont (0 = domyślny)</span><span class="mono" id="s-fps-lbl">0 FPS</span></label>
+                  <input type="range" id="s-fps" min="0" max="240" step="5" value="0" oninput="document.getElementById('s-fps-lbl').textContent=this.value+' FPS';renderGfxPreview()">
+                </div>
+              </div>
+
+              <div class="grid g2">
+                <div class="field">
+                  <label data-t="l_gfx">Profil graficzny (FFlags)</label>
+                  <select id="s-gfx" onchange="renderGfxPreview()">
+                    <option value="Default" data-t="gfx_default">Domyślny</option>
+                    <option value="Low" data-t="gfx_low">Niski</option>
+                    <option value="Potato" data-t="gfx_potato">Potato (oszczędzanie CPU)</option>
+                    <option value="Ultrapotato" data-t="gfx_ultrapotato">Ultrapotato (minimum)</option>
+                    <option value="Custom" data-t="gfx_custom">Własny</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label data-t="l_api">API renderowania</label>
+                  <select id="s-api" onchange="renderGfxPreview()">
+                    <option value="Default" data-t="api_auto">Auto (domyślne)</option>
+                    <option value="D3D11">Direct3D 11</option>
+                    <option value="Vulkan">Vulkan</option>
+                    <option value="OpenGL">OpenGL</option>
+                  </select>
+                </div>
+              </div>
+
+              <label class="chk-row" style="margin:6px 0 14px">
+                <input type="checkbox" id="s-autotile">
+                <span data-t="l_autotile">Automatycznie ułóż okna po uruchomieniu grupy</span>
+              </label>
+
+              <div class="field">
+                <label data-t="l_custom">Własne FastFlags (JSON)</label>
+                <textarea id="s-fflags" rows="3" class="mono" placeholder='{"FFlagDebugSkyGray":"True"}' oninput="renderGfxPreview()"></textarea>
+              </div>
+            </div>
+
+            <div class="card col-5" style="display:flex;flex-direction:column">
+              <h2 class="card-title" data-t="l_preview">Wygenerowany ClientAppSettings.json</h2>
+              <pre class="code-box" id="gfxCodeBox">{}</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpanel" id="sub-launch-srv">
+          <div class="card-tight between">
+            <span class="muted" data-t="srv_sub">Wybierz serwer o najniższym pingu lub najmniejszej liczbie graczy i przypisz jego Job ID do konfiguracji startu.</span>
+            <div class="row">
+              <input class="inp mono" id="srvPlace" style="width:165px" placeholder="Place ID...">
+              <select id="srvSort" style="width:185px">
+                <option value="Asc" data-t="srv_asc">Najmniej graczy (Asc)</option>
+                <option value="Desc" data-t="srv_desc">Najwięcej graczy (Desc)</option>
+              </select>
+              <button type="button" class="btn btn-primary" onclick="loadServers()" data-t="srv_load">Pobierz serwery</button>
+            </div>
+          </div>
+          <div class="card-table">
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Job ID</th>
+                    <th style="text-align:right" data-t="srv_players">Gracze</th>
+                    <th style="text-align:right">Ping</th>
+                    <th style="text-align:right" data-t="srv_fps">FPS serwera</th>
+                    <th style="text-align:right" data-t="col_act">Akcje</th>
+                  </tr>
+                </thead>
+                <tbody id="srvBody">
+                  <tr><td colspan="5" class="muted" style="text-align:center;padding:28px" data-t="srv_empty">Wpisz Place ID i kliknij Pobierz serwery.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. MONITOR & WINDOWS VIEW (Consolidated with Sub-Tabs) -->
+      <section class="view" id="v-monitor">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title" data-t="mon_title">Monitor &amp; Układ okien</h1>
+            <p class="page-sub" data-t="mon_sub">Zasoby PC, optymalizacja Smart Eco (MaxAlts) oraz siatka kafelkowania okien Roblox.</p>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" onclick="applyLayoutNow()" data-t="lay_apply">Zastosuj układ okien</button>
+            <button type="button" class="btn btn-primary" onclick="cleanRam()">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/></svg>
+              <span data-t="btn_clean_now">Wyczyść RAM teraz</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="subtabs">
+          <button type="button" class="subtab-btn active" data-sub="mon-eco" onclick="switchSub('monitor','mon-eco')" data-t="sub_mon_eco">Monitor &amp; Smart Eco</button>
+          <button type="button" class="subtab-btn" data-sub="mon-lay" onclick="switchSub('monitor','mon-lay')" data-t="sub_mon_lay">Układ okien</button>
+        </div>
+
+        <div class="subpanel active" id="sub-mon-eco">
+          <div class="grid g4">
+            <div class="card"><div class="muted" data-t="kpi_win">Aktywne okna</div><div class="kpi-val" id="k-win">0</div></div>
+            <div class="card"><div class="muted" data-t="kpi_cpu">Zużycie CPU</div><div class="kpi-val" id="k-cpu">0.0%</div></div>
+            <div class="card"><div class="muted" data-t="kpi_ram_rbx">RAM Roblox</div><div class="kpi-val" id="k-rbx-ram">0 MB</div></div>
+            <div class="card"><div class="muted" data-t="kpi_ram_free">Wolny RAM PC</div><div class="kpi-val" style="color:var(--accent)" id="k-ram">-</div></div>
+          </div>
+
+          <div class="grid g12">
+            <div class="card col-7" style="display:flex;flex-direction:column">
+              <h2 class="card-title" data-t="mon_chart">Historia wolnego RAM (ostatnie 60 próbek co 2s)</h2>
+              <svg viewBox="0 0 600 170" style="width:100%;height:190px;display:block" id="ramSvg">
+                <line x1="16" y1="28" x2="584" y2="28" stroke="var(--border)" stroke-dasharray="4 4"/>
+                <line x1="16" y1="90" x2="584" y2="90" stroke="var(--border)" stroke-dasharray="4 4"/>
+                <line x1="16" y1="152" x2="584" y2="152" stroke="var(--border)"/>
+                <polyline id="ramPoly" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points=""/>
+              </svg>
+            </div>
+
+            <div class="card col-5">
+              <h2 class="card-title" data-t="eco_title">Silnik Smart Eco (MaxAlts)</h2>
+              <label class="chk-row" style="margin-bottom:14px">
+                <input type="checkbox" id="eco-on" onchange="saveEco()">
+                <span data-t="eco_enable">Włącz automatyczną optymalizację okien w tle</span>
+              </label>
+              <div class="field">
+                <label><span data-t="eco_fps">Limit FPS w tle</span><span class="mono" id="eco-fps-lbl">10 FPS</span></label>
+                <input type="range" id="eco-fps" min="5" max="60" step="5" value="10" oninput="document.getElementById('eco-fps-lbl').textContent=this.value+' FPS'">
+              </div>
+              <div class="field">
+                <label><span data-t="eco_floor">Min. próg pamięci roboczej (MB)</span><span class="mono" id="eco-minmb-lbl">350 MB</span></label>
+                <input type="range" id="eco-minmb" min="100" max="800" step="25" value="350" oninput="document.getElementById('eco-minmb-lbl').textContent=this.value+' MB'">
+              </div>
+              <div class="field">
+                <label><span data-t="eco_cores">Rezerwuj szybkie rdzenie CPU</span><span class="mono" id="eco-cores-lbl">0</span></label>
+                <input type="range" id="eco-cores" min="0" max="8" value="0" oninput="document.getElementById('eco-cores-lbl').textContent=this.value">
+              </div>
+              <div class="row" style="margin:10px 0">
+                <label class="chk-row"><input type="checkbox" id="eco-idle"> <span data-t="eco_idle">Idle + EcoQoS</span></label>
+                <label class="chk-row"><input type="checkbox" id="eco-trim"> <span data-t="eco_trim">Smart Trim</span></label>
+                <label class="chk-row"><input type="checkbox" id="eco-min"> <span data-t="eco_min">Minimalizuj tło</span></label>
+              </div>
+              <div class="between" style="margin-top:10px">
+                <span class="muted">Auto-clean RAM %: <input id="mem-thresh" type="number" min="30" max="98" class="inp mono" style="width:66px;display:inline-block;padding:4px 8px"></span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="saveEco()" data-t="btn_apply">Zastosuj</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-table">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:13.5px" data-t="mon_procs">Aktywne procesy Roblox</div>
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr><th>PID</th><th data-t="col_acc">Konto</th><th data-t="col_size">Rozmiar</th><th style="text-align:right">CPU</th><th style="text-align:right">RAM</th><th style="text-align:right" data-t="col_act">Akcje</th></tr>
+                </thead>
+                <tbody id="winBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpanel" id="sub-mon-lay">
+          <div class="grid g12">
+            <div class="card col-4">
+              <div class="field">
+                <label data-t="lay_mode">Tryb siatki</label>
+                <div class="seg" id="laySeg">
+                  <button type="button" class="seg-btn active" data-lmode="Auto" onclick="setLayoutMode('Auto')">Auto</button>
+                  <button type="button" class="seg-btn" data-lmode="Grid" onclick="setLayoutMode('Grid')">Grid</button>
+                  <button type="button" class="seg-btn" data-lmode="FixedSize" onclick="setLayoutMode('FixedSize')">Fixed</button>
+                </div>
+              </div>
+              <div class="field">
+                <label><span data-t="lay_sim_count">Liczba okien (podgląd)</span><span class="mono" id="lay-cnt-lbl">4</span></label>
+                <input type="range" id="lay-count" min="1" max="12" value="4" oninput="document.getElementById('lay-cnt-lbl').textContent=this.value;renderLayoutPreview()">
+              </div>
+              <div class="grid g2">
+                <div class="field"><label data-t="lay_rows">Wiersze (0=auto)</label><input class="inp mono" id="lay-rows" type="number" min="0" max="8" value="2" oninput="renderLayoutPreview()"></div>
+                <div class="field"><label data-t="lay_cols">Kolumny (0=auto)</label><input class="inp mono" id="lay-cols" type="number" min="0" max="8" value="2" oninput="renderLayoutPreview()"></div>
+              </div>
+              <div class="field">
+                <label><span data-t="lay_gap">Odstęp (px)</span><span class="mono" id="lay-gap-lbl">8 px</span></label>
+                <input type="range" id="lay-gap" min="0" max="32" value="8" oninput="document.getElementById('lay-gap-lbl').textContent=this.value+' px';renderLayoutPreview()">
+              </div>
+              <div class="field">
+                <label><span data-t="lay_margin">Margines ekranu (px)</span><span class="mono" id="lay-margin-lbl">12 px</span></label>
+                <input type="range" id="lay-margin" min="0" max="48" value="12" oninput="document.getElementById('lay-margin-lbl').textContent=this.value+' px';renderLayoutPreview()">
+              </div>
+              <label class="chk-row" style="margin:8px 0 14px">
+                <input type="checkbox" id="lay-borderless" onchange="renderLayoutPreview()">
+                <span data-t="lay_borderless">Usuń ramki okien (Borderless)</span>
+              </label>
+              <div class="row">
+                <button type="button" class="btn" onclick="saveLayoutSettings()" data-t="btn_save_cfg">Zapisz układ</button>
+                <button type="button" class="btn btn-primary" onclick="applyLayoutNow()" data-t="lay_apply">Zastosuj układ</button>
+              </div>
+            </div>
+
+            <div class="card col-8">
+              <div class="between" style="margin-bottom:12px">
+                <span class="muted" id="monInfoLbl">Monitor: 1920 × 1040 px</span>
+                <span class="muted mono" id="tileCountLbl">4 tiles</span>
+              </div>
+              <div class="layout-canvas" id="layoutPreview"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. ANTI-AFK & GUARDIAN VIEW -->
+      <section class="view" id="v-afk">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title" data-t="afk_page_title">Anti-AFK &amp; Ochrona sesji</h1>
+            <p class="page-sub" data-t="afk_page_sub">Skonfiguruj impulsy Anti-AFK (bez kolizji z nagrywaniem makr), Watchdog auto-restart, Crash Breaker i wykrywanie zamrożonych okien.</p>
+          </div>
+          <div class="row">
+            <button type="button" class="btn" onclick="pulseAfkNow()" data-t="afk_pulse_now">Wykonaj impuls Anti-AFK teraz</button>
+            <button type="button" class="btn btn-primary" onclick="saveAfkAndGuard()" data-t="btn_save_cfg">Zapisz ochronę</button>
+          </div>
+        </div>
+
+        <div class="grid g12">
+          <div class="card col-5">
+            <h2 class="card-title" data-t="afk_title">Keep-Alive Anti-AFK</h2>
+            <label class="chk-row" style="margin-bottom:14px">
+              <input type="checkbox" id="afk-on">
+              <span data-t="afk_enable">Aktywuj okresowe odświeżanie aktywności okien</span>
+            </label>
+            <div class="field">
+              <label><span data-t="afk_min">Interwał impulsu (min)</span><span class="mono" id="afk-min-lbl">12 min</span></label>
+              <input type="range" id="afk-min" min="1" max="19" value="12" oninput="document.getElementById('afk-min-lbl').textContent=this.value+' min'">
+            </div>
+            <div class="field">
+              <label data-t="afk_act">Rodzaj akcji</label>
+              <select id="afk-act">
+                <option value="Nudge" data-t="afk_act_nudge">Ruch myszą (zalecane)</option>
+                <option value="Space" data-t="afk_act_space">Skok (Spacja)</option>
+                <option value="Zoom" data-t="afk_act_zoom">Zoom kamery (I/O)</option>
+              </select>
+            </div>
+            <p class="muted" style="margin:8px 0 0" data-t="afk_macro_safe">Impulsy Anti-AFK automatycznie wstrzymują się podczas nagrywania lub odtwarzania makr .v9m.</p>
+          </div>
+
+          <div class="card col-7">
+            <h2 class="card-title" data-t="guard_title">Watchdog, Crash Breaker &amp; Ghost Killer</h2>
+            <div class="row" style="margin-bottom:14px">
+              <label class="chk-row"><input type="checkbox" id="afk-watch"> <span data-t="set_watch">Watchdog (auto-restart po crashu)</span></label>
+              <label class="chk-row"><input type="checkbox" id="afk-reconn"> <span data-t="guard_reconn">Auto-Reconnect po kicku / 277</span></label>
+              <label class="chk-row"><input type="checkbox" id="afk-cb"> <span data-t="guard_cb">Crash Breaker (limit restartów)</span></label>
+            </div>
+            <div class="grid g2">
+              <div class="field">
+                <label data-t="guard_wsec">Cykl Watchdoga (s)</label>
+                <input class="inp mono" id="afk-wsec" type="number" min="10" max="600" value="30">
+              </div>
+              <div class="field">
+                <label data-t="guard_ghost">Ghost Killer (min bez okna, 0=wył.)</label>
+                <input class="inp mono" id="afk-ghost" type="number" min="0" max="240" value="0">
+              </div>
+            </div>
+            <div class="grid g3">
+              <div class="field"><label data-t="guard_cb_max">Maks. crashy</label><input class="inp mono" id="afk-cbmax" type="number" min="1" max="20" value="3"></div>
+              <div class="field"><label data-t="guard_cb_win">Okno czasu (min)</label><input class="inp mono" id="afk-cbwin" type="number" min="1" max="180" value="15"></div>
+              <div class="field"><label data-t="guard_cb_cd">Pauza po serii (min)</label><input class="inp mono" id="afk-cbcd" type="number" min="1" max="240" value="30"></div>
+            </div>
+            <div class="grid g2" style="padding-top:10px;border-top:1px solid var(--border);align-items:center">
+              <div class="field" style="margin:0">
+                <label data-t="guard_lock">Auto-blokada panelu po bezczynności (min, 0=wył.)</label>
+                <input class="inp mono" id="afk-lockmin" type="number" min="0" max="480" value="0">
+              </div>
+              <div style="display:flex;justify-content:flex-end">
+                <button type="button" class="btn btn-sm" onclick="switchTab('monitor')" data-t="guard_go_eco">Otwórz Smart Eco (FPS tła)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="between" style="margin-bottom:12px">
+            <div>
+              <h2 class="card-title" style="margin:0" data-t="sch_title">Harmonogram farmy (Auto-Restart / Godziny pracy)</h2>
+              <p class="muted" style="margin:3px 0 0" data-t="sch_sub">Cykliczne odświeżanie sesji co X godzin oraz automatyczny start/stop o wyznaczonej godzinie.</p>
+            </div>
+            <label class="chk-row"><input type="checkbox" id="sch-on"> <span data-t="sch_en">Aktywuj harmonogram</span></label>
+          </div>
+          <div class="grid g4">
+            <div class="field" style="margin:0"><label data-t="sch_hours">Restart co (godz., 0=wył.)</label><input class="inp mono" id="sch-hours" type="number" min="0" max="168" value="0"></div>
+            <div class="field" style="margin:0"><label data-t="sch_start">Auto-Start (HH:mm)</label><input class="inp mono" id="sch-start" placeholder="08:00"></div>
+            <div class="field" style="margin:0"><label data-t="sch_stop">Auto-Stop (HH:mm)</label><input class="inp mono" id="sch-stop" placeholder="23:30"></div>
+            <div class="field" style="margin:0"><label data-t="sch_grp">Grupa docelowa (puste=wszystkie)</label><input class="inp" id="sch-grp" data-ph="grp_ph" placeholder="Farma A"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. CLASSIC MACROS (.v9m) & PRESETS VIEW -->
+      <section class="view" id="v-presets">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title" data-t="pre_title">Makra (.v9m) &amp; Presety</h1>
+            <p class="page-sub" data-t="pre_sub">Klasyczna nagrywarka makr z globalnymi skrótami F9/F10, pętlą ciągłą, prędkością odtwarzania oraz zapisem do .v9m.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="macOpenWinBtn" onclick="openClassicMacroWin()" data-t="mac_open_win">Otwórz okno Makra (F9 / F10)</button>
+        </div>
+
+        <div class="grid g12">
+          <div class="card col-7">
+            <div class="between" style="margin-bottom:12px">
+              <div>
+                <h2 class="card-title" style="margin:0" data-t="mac_classic_title">Klasyczny Rejestrator &amp; Odtwarzacz (.v9m)</h2>
+                <div class="muted" id="macLiveStatus" style="margin-top:3px">Gotowy · Użyj F9 (Nagraj/Stop) i F10 (Odtwórz/Stop) w oknie Makra lub nagraj z hooka tutaj.</div>
+              </div>
+              <div class="row">
+                <button type="button" class="btn btn-primary btn-xs" id="macRecBtn" onclick="toggleWebRecord()" data-t="mac_rec">Nagraj (Hook)</button>
+                <button type="button" class="btn btn-danger btn-xs" id="macStopBtn" style="display:none" onclick="stopWebMacro()" data-t="mac_stop">Stop</button>
+              </div>
+            </div>
+
+            <div class="grid g3" style="margin-bottom:12px">
+              <div class="field" style="margin:0"><label data-t="mac_name">Nazwa pliku (.v9m)</label><input class="inp" id="mac-name" value="macro_farm"></div>
+              <div class="field" style="margin:0"><label data-t="mac_speed">Prędkość (x)</label><input class="inp mono" id="mac-speed" type="number" step="0.05" min="0.1" max="50" value="1"></div>
+              <div class="field" style="margin:0"><label data-t="mac_repeats">Powtórzenia</label><input class="inp mono" id="mac-repeats" type="number" min="1" max="9999" value="1"></div>
+            </div>
+
+            <div class="grid g3" style="margin-bottom:14px">
+              <div class="field" style="margin:0"><label data-t="mac_pause">Pauza między pętlami (ms)</label><input class="inp mono" id="mac-pause" type="number" min="0" max="600000" step="100" value="0"></div>
+              <div class="field" style="margin:0"><label>Jitter (ms)</label><input class="inp mono" id="mac-jms" type="number" min="0" max="2000" value="0"></div>
+              <div class="field" style="margin:0"><label data-t="mac_target">Okno docelowe</label><select id="mac-target"><option value="" data-t="mac_active_win">Aktywne okno</option></select></div>
+            </div>
+
+            <div class="row" style="padding-top:10px;border-top:1px solid var(--border)">
+              <label class="chk-row"><input type="checkbox" id="mac-loop"> <span data-t="mac_loop">Pętla ciągła (Loop)</span></label>
+              <label class="chk-row"><input type="checkbox" id="mac-moves"> <span data-t="mac_moves">Nagrywaj ruchy myszy</span></label>
+              <label class="chk-row"><input type="checkbox" id="mac-trim" checked> <span data-t="mac_trim">Przytnij pusty start</span></label>
+            </div>
+          </div>
+
+          <div class="card col-5">
+            <h2 class="card-title" data-t="mac_lib_title">Biblioteka plików .v9m</h2>
+            <div id="macLibList"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" data-t="pre_saved_title">Presety farmy</h2>
+          <form class="row" style="margin-bottom:16px" onsubmit="event.preventDefault();savePreset()">
+            <input class="inp" id="presetName" style="flex:1" data-ph="pre_ph" placeholder="Nazwa nowego presetu...">
+            <button type="submit" class="btn btn-primary" data-t="pre_save">Zapisz aktywne okna</button>
+          </form>
+          <div id="presetList"></div>
+        </div>
+      </section>
+
+      <!-- 6. SETTINGS & DIAGNOSTICS VIEW -->
+      <section class="view" id="v-settings">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title" data-t="set_title">Ustawienia &amp; Diagnostyka</h1>
+            <p class="page-sub" data-t="set_sub">Multi-Instance, globalne skróty, kopia .v9vault, alerty Webhook oraz dziennik zdarzeń.</p>
+          </div>
+        </div>
+
+        <div class="subtabs">
+          <button type="button" class="subtab-btn active" data-sub="set-main" onclick="switchSub('settings','set-main')" data-t="sub_set_main">Ustawienia &amp; Wygląd</button>
+          <button type="button" class="subtab-btn" data-sub="set-logs" onclick="switchSub('settings','set-logs')" data-t="sub_set_logs">Dziennik &amp; Diagnostyka</button>
+        </div>
+
+        <div class="subpanel active" id="sub-set-main">
+          <div class="grid g12">
+            <div class="col-5" style="display:flex;flex-direction:column;gap:18px">
+              <div class="card">
+                <h2 class="card-title" data-t="set_core">Silnik i skróty</h2>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+                  <label class="chk-row"><input type="checkbox" id="set-multi"> <span data-t="set_multi">Multi-Instance Mutex (wiele okien naraz)</span></label>
+                  <label class="chk-row"><input type="checkbox" id="set-memclean"> <span data-t="set_autoclean">Auto-clean RAM (usługa pomocnicza)</span></label>
+                  <label class="chk-row"><input type="checkbox" id="set-hotkeys"> <span data-t="set_hotkeys">Globalne skróty: Ctrl+Shift+T (Siatka), M (RAM), K (Stop)</span></label>
+                </div>
+                <p class="muted" style="margin:0 0 12px" data-t="set_proto_note">Tryb uruchamiania: wyłącznie protokół roblox-player: (URI).</p>
+                <button type="button" class="btn btn-primary" style="margin-top:6px" onclick="saveGeneralSettings()" data-t="btn_save_cfg">Zapisz ustawienia</button>
+              </div>
+
+              <div class="card">
+                <h2 class="card-title" data-t="vault_title">Szyfrowana kopia .v9vault &amp; Aktualizacje</h2>
+                <p class="muted" style="margin:0 0 10px" data-t="vault_desc">Eksportuj lub przywróć wszystkie konta i ustawienia jednym plikiem .v9vault (AES-256 + HMAC).</p>
+                <div class="field" style="margin-bottom:10px">
+                  <input class="inp" id="vaultPw" type="password" data-ph="vault_pw_ph" placeholder="Hasło szyfrujące .v9vault...">
+                </div>
+                <div class="row" style="margin-bottom:12px">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="exportVaultFile()" data-t="vault_export">Eksportuj .v9vault</button>
+                  <label class="btn btn-sm" style="cursor:pointer">
+                    <span data-t="vault_import">Importuj .v9vault</span>
+                    <input type="file" accept=".v9vault,.json" style="display:none" onchange="importVaultFile(this)">
+                  </label>
+                </div>
+                <div class="between" style="padding-top:10px;border-top:1px solid var(--border)">
+                  <span class="muted mono" id="updResult">v1.0.0 · v9pv</span>
+                  <button type="button" class="btn btn-xs" id="updCheckBtn" onclick="checkUpdatesNow()" data-t="upd_check">Sprawdź GitHub</button>
+                </div>
+              </div>
+
+              <div class="card">
+                <h2 class="card-title" data-t="ws_accent">Kolor akcentu</h2>
+                <p class="muted" style="margin:0 0 12px" data-t="acc_color_sub">Wybierz główny kolor akcentu panelu desktopowego.</p>
+                <div class="accent-dots" id="accentDots">
+                  <button type="button" class="accent-dot active" data-acc="Emerald" style="background:#10B981" title="Emerald" onclick="setAccent('Emerald')"></button>
+                  <button type="button" class="accent-dot" data-acc="Blue" style="background:#3B82F6" title="Blue" onclick="setAccent('Blue')"></button>
+                  <button type="button" class="accent-dot" data-acc="Purple" style="background:#8B5CF6" title="Purple" onclick="setAccent('Purple')"></button>
+                  <button type="button" class="accent-dot" data-acc="Amber" style="background:#F59E0B" title="Amber" onclick="setAccent('Amber')"></button>
+                  <button type="button" class="accent-dot" data-acc="Rose" style="background:#F43F5E" title="Rose" onclick="setAccent('Rose')"></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card col-7">
+              <h2 class="card-title" data-t="wh_title">Opcjonalne powiadomienia Webhook</h2>
+              <p class="muted" style="margin:0 0 14px" data-t="wh_desc">Działa z kolejką SemaphoreSlim i obsługą Retry-After. Brak botów Discord, zdalnych portów LAN ani zbędnych linków.</p>
+              <label class="chk-row" style="margin-bottom:14px"><input type="checkbox" id="wh-on"> <span data-t="wh_en">Włącz powiadomienia Webhook</span></label>
+              <div class="field">
+                <label>Webhook URL (HTTPS)</label>
+                <div class="row" style="flex-wrap:nowrap">
+                  <input class="inp mono" id="wh-url" type="password" placeholder="https://.../api/webhooks/..." style="flex:1">
+                  <button type="button" class="btn btn-primary" onclick="testWebhook()" data-t="wh_test">Testuj Webhook</button>
+                </div>
+              </div>
+              <div class="field">
+                <label data-t="wh_status_url">Drugi Webhook dla raportów (opcjonalny)</label>
+                <input class="inp mono" id="wh-status" type="password" placeholder="https://.../api/webhooks/...">
+              </div>
+              <div id="whResult" style="display:none;margin-bottom:12px" class="banner"></div>
+              <div class="grid g2" style="padding-top:12px;border-top:1px solid var(--border);margin-bottom:14px">
+                <label class="chk-row"><input type="checkbox" id="wh-crash"> <span data-t="wh_crash">Crash procesu</span></label>
+                <label class="chk-row"><input type="checkbox" id="wh-lock"> <span data-t="wh_lock">Blokada 403 / wygasłe cookie</span></label>
+                <label class="chk-row"><input type="checkbox" id="wh-batch"> <span data-t="wh_batch">Start paczki kont</span></label>
+                <label class="chk-row"><input type="checkbox" id="wh-daily"> <span data-t="wh_daily">Raport dzienny</span></label>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="saveWebhookSettings()" data-t="btn_save_cfg">Zapisz Webhook</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpanel" id="sub-set-logs">
+          <div class="grid g3">
+            <div class="card"><div class="muted">Loopback UI URL</div><div class="mono" style="font-size:12px;word-break:break-all;margin-top:4px" id="diagUrl">-</div></div>
+            <div class="card"><div class="muted">Multi-Instance Mutex</div><div class="kpi-val" style="font-size:18px" id="diagMi">-</div></div>
+            <div class="card"><div class="muted" data-t="diag_folder">Folder danych</div><div class="mono" style="font-size:12px;word-break:break-all;margin-top:4px" id="diagDir">-</div></div>
+          </div>
+
+          <div class="row" style="justify-content:flex-end">
+            <button type="button" class="btn" onclick="copyWebUrl()" data-t="btn_copy_url">Kopiuj URL Web UI</button>
+            <button type="button" class="btn btn-primary" onclick="apiPost('api/tools/open-data',{})" data-t="log_open_dir">Otwórz folder danych</button>
+          </div>
+
+          <div class="card">
+            <div id="logBox" class="mono" style="background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:14px;height:380px;overflow-y:auto;font-size:12px;line-height:1.65"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-back" id="m-auth"><div class="modal modal-lg">
+  <div class="between" style="margin-bottom:12px">
+    <div>
+      <h2 style="margin:0;font-size:18px" data-t="auth_title">Zaloguj lub dodaj konto Roblox</h2>
+      <p class="muted" style="margin:3px 0 0" data-t="auth_sub">Wybierz metodę: kod QR (Quick Login), izolowana przeglądarka Web, token cookie, plik hurtowy lub JSON.</p>
+    </div>
+    <button type="button" class="btn btn-xs" onclick="closeAuth()">✕</button>
+  </div>
+
+  <div class="subtabs" id="authTabs" style="margin-bottom:14px;width:100%;overflow-x:auto">
+    <button type="button" class="subtab-btn active" data-auth="pick" onclick="switchAuthTab('pick')" data-t="tab_pick">Wybierz metodę</button>
+    <button type="button" class="subtab-btn" data-auth="qr" onclick="switchAuthTab('qr')" data-t="tab_qr">Kod QR</button>
+    <button type="button" class="subtab-btn" data-auth="web" onclick="switchAuthTab('web')" data-t="tab_web">Logowanie Web</button>
+    <button type="button" class="subtab-btn" data-auth="cookie" onclick="switchAuthTab('cookie')" data-t="tab_cookie">.ROBLOSECURITY</button>
+    <button type="button" class="subtab-btn" data-auth="bulk" onclick="switchAuthTab('bulk')" data-t="tab_bulk">Hurtowy (.txt)</button>
+    <button type="button" class="subtab-btn" data-auth="json" onclick="switchAuthTab('json')" data-t="tab_json">JSON Cookies</button>
+  </div>
+
+  <!-- 0. Method Selector Grid -->
+  <div class="subpanel active" id="auth-pick">
+    <div class="method-grid">
+      <button type="button" class="method-card" onclick="switchAuthTab('qr')">
+        <strong data-t="tab_qr">Kod QR (Quick Login)</strong>
+        <span data-t="pick_qr_desc">Zeskanuj kod QR telefonem w aplikacji Roblox lub przepisz kod 6-znakowy.</span>
+      </button>
+      <button type="button" class="method-card" onclick="switchAuthTab('web')">
+        <strong data-t="tab_web">Logowanie Web (Chromium)</strong>
+        <span data-t="pick_web_desc">Otwiera izolowane okno przeglądarki na czystym profilu i automatycznie przechwytuje sesję.</span>
+      </button>
+      <button type="button" class="method-card" onclick="switchAuthTab('cookie')">
+        <strong data-t="tab_cookie">Token .ROBLOSECURITY</strong>
+        <span data-t="pick_cookie_desc">Wklej pojedyncze cookie lub cały blok tekstu: automatyczny parser wyodrębni tokeny.</span>
+      </button>
+      <button type="button" class="method-card" onclick="switchAuthTab('bulk')">
+        <strong data-t="tab_bulk">Import hurtowy (.txt)</strong>
+        <span data-t="pick_bulk_desc">Dodaj wiele kont naraz z pliku lub listy nick:haslo:cookie.</span>
+      </button>
+      <button type="button" class="method-card" style="grid-column:1 / -1" onclick="switchAuthTab('json')">
+        <strong data-t="tab_json">JSON Cookies (Cookie-Editor / EditThisCookie)</strong>
+        <span data-t="pick_json_desc">Wklej lub wczytaj plik .json wyeksportowany bezpośrednio z rozszerzenia przeglądarki.</span>
+      </button>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:6px">
+      <button type="button" class="btn" onclick="closeAuth()" data-t="btn_cancel">Anuluj</button>
+    </div>
+  </div>
+
+  <div class="grid g2" id="authSharedMeta" style="margin-bottom:12px;display:none">
+    <div class="field" style="margin:0"><label data-t="m_grp">Grupa docelowa (opcjonalnie)</label><input class="inp" id="ma-grp" data-ph="grp_ph" placeholder="Farma A"></div>
+    <div class="field" style="margin:0"><label data-t="m_alias">Alias / notatka (opcjonalnie)</label><input class="inp" id="ma-alias" placeholder="Slot #1"></div>
+  </div>
+
+  <!-- 1. QR / Quick Login -->
+  <div class="subpanel" id="auth-qr">
+    <div class="card" style="background:var(--bg-sub);padding:16px">
+      <div class="row" style="align-items:flex-start;gap:18px;flex-wrap:nowrap">
+        <div class="qr-frame" id="qrSvgBox">
+          <span class="muted" style="font-size:12px;text-align:center;color:#475569" data-t="qr_empty">Kliknij Generuj QR</span>
+        </div>
+        <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div class="muted" style="font-size:11.5px" data-t="qr_code_lbl">Jednorazowy kod Quick Login:</div>
+            <div class="mono" id="qrCodeText" style="font-size:26px;font-weight:800;letter-spacing:.14em;margin-top:2px">------</div>
+            <div class="muted mono" id="qrExpiryText" style="font-size:11.5px;margin-top:2px">-</div>
+          </div>
+          <p class="muted" style="margin:0;font-size:12px" data-t="qr_hint">Zeskanuj kod QR telefonem w aplikacji Roblox (Więcej → Szybkie logowanie) lub zatwierdź kod w przeglądarce.</p>
+          <div id="qrStatusBanner" class="banner" style="display:none;padding:7px 10px;font-size:12px"></div>
+          <div class="row">
+            <button type="button" class="btn btn-primary btn-sm" id="qrGenBtn" onclick="startQrLogin()" data-t="qr_gen">Generuj nowy QR</button>
+            <button type="button" class="btn btn-sm" id="qrCopyBtn" onclick="copyQrCode()" disabled data-t="qr_copy">Kopiuj kod</button>
+            <button type="button" class="btn btn-sm" id="qrOpenBtn" onclick="openQrConfirm()" disabled data-t="qr_confirm_web">Potwierdź na roblox.com</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="btn" onclick="closeAuth()" data-t="btn_cancel">Zamknij</button>
+    </div>
+  </div>
+
+  <!-- 2. Web Browser Isolated Login -->
+  <div class="subpanel" id="auth-web">
+    <div class="card" style="background:var(--bg-sub);padding:16px">
+      <p class="muted" style="margin:0 0 12px" data-t="web_desc">Otwiera izolowane okno logowania Chromium (Edge / Chrome / Brave) na osobnym profilu tymczasowym bez wylogowywania obecnych kont. Po przejściu 2FA/Captchy token .ROBLOSECURITY zapisze się automatycznie.</p>
+      <div class="grid g2">
+        <div class="field">
+          <label data-t="web_browser_lbl">Przeglądarka</label>
+          <select class="inp" id="wb-browser">
+            <option value="auto">Auto (Edge / Chrome / Brave)</option>
+            <option value="edge">Microsoft Edge</option>
+            <option value="chrome">Google Chrome</option>
+            <option value="brave">Brave</option>
+          </select>
+        </div>
+        <div class="field">
+          <label data-t="web_page_lbl">Strona startowa</label>
+          <select class="inp" id="wb-url">
+            <option value="https://www.roblox.com/login">roblox.com/login (Standard)</option>
+            <option value="https://www.roblox.com/crossdevicelogin">roblox.com/crossdevicelogin (Kod)</option>
+          </select>
+        </div>
+      </div>
+      <div id="webStatusBanner" class="banner" style="display:none;margin-bottom:12px"></div>
+      <div class="row">
+        <button type="button" class="btn btn-primary" id="wbStartBtn" onclick="startWebLogin()" data-t="web_start_btn">Otwórz okno logowania Roblox</button>
+        <button type="button" class="btn btn-danger" id="wbCancelBtn" onclick="cancelWebLogin()" style="display:none" data-t="web_cancel_btn">Zatrzymaj sesję</button>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="btn" onclick="closeAuth()" data-t="btn_cancel">Zamknij</button>
+    </div>
+  </div>
+
+  <!-- 3. Cookie Paste -->
+  <form class="subpanel" id="auth-cookie" onsubmit="event.preventDefault();submitCookie()">
+    <p class="muted" style="margin:0" data-t="mc_desc">Wklej pojedyncze cookie lub cały blok tekstu. Parser wyodrębni wszystkie poprawne tokeny.</p>
+    <div class="field" style="margin:0"><label>.ROBLOSECURITY</label><textarea id="mc-raw" rows="4" class="mono" placeholder="_|WARNING:-DO-NOT-SHARE-THIS.--..."></textarea></div>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="btn" onclick="closeAuth()" data-t="btn_cancel">Anuluj</button>
+      <button type="submit" class="btn btn-primary" data-t="btn_add">Dodaj do listy</button>
+    </div>
+  </form>
+
+  <!-- 4. Bulk Import (user:pass:cookie + .txt file) -->
+  <form class="subpanel" id="auth-bulk" onsubmit="event.preventDefault();submitBulk()">
+    <div class="between">
+      <p class="muted" style="margin:0" data-t="mb_desc">Jedno konto na linię w formacie nick:haslo:_|WARNING:...</p>
+      <label class="btn btn-xs" style="cursor:pointer">
+        <span data-t="btn_load_file">Wczytaj plik .txt</span>
+        <input type="file" accept=".txt,.csv,.log" style="display:none" onchange="loadTextFile(this,'mb-raw')">
+      </label>
+    </div>
+    <div class="field" style="margin:0"><label>nick:haslo:cookie</label><textarea id="mb-raw" rows="5" class="mono" placeholder="Farmer01:Pass123:_|WARNING:-DO-NOT-SHARE-THIS.--..."></textarea></div>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="btn" onclick="closeAuth()" data-t="btn_cancel">Anuluj</button>
+      <button type="submit" class="btn btn-primary" data-t="btn_import">Importuj</button>
+    </div>
+  </form>
+
+  <!-- 5. JSON Extension Cookies -->
+  <form class="subpanel" id="auth-json" onsubmit="event.preventDefault();submitJsonCookies()">
+    <div class="between">
+      <p class="muted" style="margin:0" data-t="mj_desc">Wklej JSON wyeksportowany z rozszerzenia przeglądarki (Cookie-Editor / EditThisCookie) lub wczytaj plik .json.</p>
+      <label class="btn btn-xs" style="cursor:pointer">
+        <span data-t="btn_load_json">Wczytaj plik .json</span>
+        <input type="file" accept=".json,.txt" style="display:none" onchange="loadTextFile(this,'mj-raw')">
+      </label>
+    </div>
+    <div class="field" style="margin:0"><label>JSON Cookies</label><textarea id="mj-raw" rows="5" class="mono" placeholder='[{"name":".ROBLOSECURITY","value":"_|WARNING:-DO-NOT-SHARE-THIS.--..."}]'></textarea></div>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="btn" onclick="closeAuth()" data-t="btn_cancel">Anuluj</button>
+      <button type="submit" class="btn btn-primary" data-t="btn_import_json">Importuj JSON</button>
+    </div>
+  </form>
+</div></div>
+
+<div class="modal-back" id="m-edit"><form class="modal" onsubmit="event.preventDefault();submitEdit()">
+  <h2 style="margin:0 0 12px;font-size:18px"><span data-t="me_title">Edytuj konto</span>: <span id="me-user" class="mono"></span></h2>
+  <input type="hidden" id="me-id">
+  <div class="grid g2">
+    <div class="field"><label data-t="me_alias">Alias</label><input class="inp" id="me-alias"></div>
+    <div class="field"><label data-t="col_grp">Grupa</label><input class="inp" id="me-grp"></div>
+  </div>
+  <div class="field"><label data-t="me_tags">Tagi (oddzielone przecinkiem)</label><input class="inp" id="me-tags" placeholder="Main, AFK, Trade"></div>
+  <div class="grid g2">
+    <div class="field"><label data-t="me_place">Zapisany Place ID</label><input class="inp mono" id="me-place" placeholder="155615604"></div>
+    <div class="field"><label data-t="me_job">Zapisany Job ID</label><input class="inp mono" id="me-job"></div>
+  </div>
+  <div class="grid g2">
+    <div class="field"><label data-t="me_fps">Limit FPS (0 = globalny)</label><input class="inp mono" id="me-fps" type="number" min="0" max="1000"></div>
+    <div class="field"><label data-t="me_delay">Opóźnienie (s, 0 = globalne)</label><input class="inp mono" id="me-delay" type="number" min="0" max="600"></div>
+  </div>
+  <div class="row" style="margin:10px 0 16px">
+    <label class="chk-row"><input type="checkbox" id="me-min"> <span data-t="me_min">Minimalizuj po starcie</span></label>
+    <label class="chk-row"><input type="checkbox" id="me-trim"> <span data-t="me_trim">Przytnij RAM po starcie</span></label>
+  </div>
+  <div class="row" style="justify-content:flex-end">
+    <button type="button" class="btn" onclick="closeModal('m-edit')" data-t="btn_cancel">Anuluj</button>
+    <button type="submit" class="btn btn-primary" data-t="btn_save">Zapisz</button>
+  </div>
+</form></div>
+
+<div class="modal-back" id="m-lock"><form class="modal" style="max-width:400px" onsubmit="event.preventDefault();submitUnlock()">
+  <h2 style="margin:0 0 8px;font-size:18px" data-t="lock_title">Panel zablokowany</h2>
+  <p class="muted" style="margin:0 0 14px" data-t="lock_desc">Wpisz hasło aby odblokować v9 MultiRLBX.</p>
+  <div class="field"><input type="password" class="inp" id="lock-pw" placeholder="Hasło / Password"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px">
+    <button type="submit" class="btn btn-primary" data-t="lock_btn">Odblokuj</button>
+  </div>
+</form></div>
+
+<div class="modal-back" id="m-onboard"><div class="modal modal-lg">
+  <div class="between" style="margin-bottom:12px">
+    <div class="row" style="gap:8px">
+      <span class="ver-tag">v1.0.0</span>
+      <span class="muted mono" id="onbBadge" data-t="onb_badge">Szybki briefing</span>
+    </div>
+    <span class="muted mono" id="onbStepCounter">1 / 4</span>
+  </div>
+  <div class="onb-bars" id="onbBars">
+    <button type="button" class="onb-bar active" onclick="renderOnboardingStep(0)"></button>
+    <button type="button" class="onb-bar" onclick="renderOnboardingStep(1)"></button>
+    <button type="button" class="onb-bar" onclick="renderOnboardingStep(2)"></button>
+    <button type="button" class="onb-bar" onclick="renderOnboardingStep(3)"></button>
+  </div>
+  <div class="onb-hero">
+    <div id="onbMascot" style="flex-shrink:0"></div>
+    <div style="min-width:0;flex:1">
+      <h2 id="onbTitle" style="margin:0;font-size:19px"></h2>
+      <div class="onb-quote" id="onbQuote"></div>
+      <p class="muted" id="onbDesc" style="margin:0;font-size:13px;line-height:1.55"></p>
+    </div>
+  </div>
+  <div class="onb-list" id="onbBullets"></div>
+  <div class="between" style="margin:10px 0 16px">
+    <label class="chk-row"><input type="checkbox" id="onbDontShow" checked> <span data-t="onb_dont_show">Nie pokazuj ponownie przy starcie</span></label>
+    <button type="button" class="btn btn-xs" id="onbJumpBtn" onclick="jumpFromOnboarding()" data-t="onb_open_tab">Skocz do zakładki</button>
+  </div>
+  <div class="between">
+    <button type="button" class="btn btn-sm" onclick="closeOnboarding()" data-t="btn_onb_skip">Pomiń (ogarniam)</button>
+    <div class="row">
+      <button type="button" class="btn btn-sm" id="onbBackBtn" onclick="stepOnboarding(-1)" data-t="btn_back">Wstecz</button>
+      <button type="button" class="btn btn-primary btn-sm" id="onbNextBtn" onclick="stepOnboarding(1)" data-t="btn_next">Dawaj dalej</button>
+    </div>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const T = window.__LOCAL_TOKEN__ || new URLSearchParams(location.search).get('t') || '';
+let state = null;
+let selected = new Set();
+let activeGroup = '__all__';
+let lang = 'pl';
+let themeMode = 'dark';
+let accentName = 'Emerald';
+let launchMode = 'Game';
+let layoutMode = 'Auto';
+let synced = false;
+
+const DICT = {
+  pl: {
+    grp_farm:'Farma', grp_sys:'System',
+    nav_accounts:'Konta', nav_launch_srv:'Start & Serwery', nav_mon_win:'Monitor & Okna',
+    nav_afk:'Anti-AFK & Ochrona', nav_presets:'Makra (.v9m) & Presety', nav_settings_logs:'Ustawienia & Logi',
+    sub_launch_cfg:'Konfiguracja & FastFlags', sub_launch_srv:'Przeglądarka serwerów',
+    sub_mon_eco:'Monitor & Smart Eco', sub_mon_lay:'Układ okien',
+    sub_set_main:'Ustawienia & Wygląd', sub_set_logs:'Dziennik & Diagnostyka',
+    btn_clean_ram:'Wyczyść RAM', btn_clean_now:'Wyczyść RAM teraz', btn_launch_sel:'Uruchom zaznaczone',
+    btn_launch_all:'Uruchom wszystkie', btn_stop_all:'Zatrzymaj wszystko', btn_copy_url:'Kopiuj URL Web UI',
+    btn_refresh:'Odśwież', conn_err:'Brak połączenia z lokalnym serwerem MultiRLBX (127.0.0.1).',
+    ws_accent:'Kolor akcentu', acc_color_sub:'Wybierz główny kolor akcentu panelu desktopowego.',
+    theme_dark:'Ciemny', theme_light:'Jasny',
+    warn_no_roblox:'Nie wykryto lokalnego RobloxPlayerBeta.exe (uruchamianie przez protokół roblox-player: pozostaje aktywne).',
+    acc_title:'Konta i Grupy', acc_sub:'Zarządzaj profilami Roblox, sprawdzaj ważność cookies równolegle i uruchamiaj grupy z opóźnieniem.',
+    acc_search_ph:'Szukaj konta, aliasu, grupy lub tagu...', all_groups:'Wszystkie', grp_ph:'Farma A',
+    btn_auth_hub:'+ Zaloguj / Dodaj', btn_check_cookies:'Sprawdź cookies', btn_check_presence:'Sprawdź Presence',
+    col_acc:'Konto', col_grp:'Grupa', col_status:'Status', col_res:'Zasoby (CPU / RAM)', col_target:'Place / FPS / Delay', col_act:'Akcje', col_size:'Rozmiar',
+    st_running:'W grze', st_ready:'Czeka', st_expired:'Cookie wygasło', st_locked:'Blokada 403',
+    btn_start:'Start', btn_stop:'Stop', btn_edit:'Edytuj', btn_del:'Usuń',
+    l_title:'Start & Serwery', l_sub:'Konfiguruj tryb wejścia, profil FastFlags (ClientAppSettings.json) i wybieraj serwery publiczne.',
+    gp_title:'Wybór gry Roblox (Game Picker)', gp_sub:'Przeglądaj popularne gry, szukaj po nazwie lub wklej Place ID / link, aby podejrzeć szczegóły.',
+    gp_search_ph:'Szukaj gry lub Place ID...', gp_search_btn:'Szukaj', gp_trend_btn:'Popularne',
+    gp_browse_srv:'Przeglądaj serwery', gp_loading:'Ładowanie listy gier z Roblox...', gp_empty:'Brak pasujących gier dla tego zapytania.',
+    gp_ccu:'Graczy online', gp_likes:'Polubienia', gp_visits:'Odwiedziny', gp_max:'Maks. na serwerze', gp_selected:'Wybrana gra', gp_creator:'Twórca',
+    btn_save_cfg:'Zapisz ustawienia', l_queue_btn:'Uruchom wybraną grupę',
+    l_mode:'Tryb dołączania', mode_game:'Gra (Game)', mode_job:'Serwer (Job ID)', mode_private:'Serwer prywatny', mode_follow:'Dołącz do gracza',
+    l_place:'Place ID lub URL gry Roblox', l_job:'Job ID serwera (opcjonalnie)',
+    l_priv:'Link VIP / Private Server', l_follow:'Nazwa gracza (Follow)', l_delay:'Odstęp uruchomień (s)',
+    l_fps:'Limit FPS kont (0 = domyślny)', l_gfx:'Profil graficzny (FFlags)', l_api:'API renderowania',
+    gfx_default:'Domyślny', gfx_low:'Niski', gfx_potato:'Potato (oszczędzanie CPU)', gfx_ultrapotato:'Ultrapotato (minimum)', gfx_custom:'Własny', api_auto:'Auto (domyślne)',
+    l_autotile:'Automatycznie ułóż okna po uruchomieniu grupy', l_custom:'Własne FastFlags (JSON)', l_preview:'Wygenerowany ClientAppSettings.json',
+    srv_sub:'Wybierz serwer o najniższym pingu lub najmniejszej liczbie graczy i przypisz jego Job ID do konfiguracji startu.',
+    srv_asc:'Najmniej graczy (Asc)', srv_desc:'Najwięcej graczy (Desc)', srv_load:'Pobierz serwery', srv_players:'Gracze', srv_fps:'FPS serwera',
+    srv_empty:'Wpisz Place ID i kliknij Pobierz serwery.', srv_use:'Użyj Job ID', srv_need_place:'Podaj Place ID', srv_no_res:'Brak wyników',
+    lay_apply:'Zastosuj układ', lay_mode:'Tryb siatki', lay_sim_count:'Liczba okien (podgląd)', lay_rows:'Wiersze (0=auto)', lay_cols:'Kolumny (0=auto)',
+    lay_gap:'Odstęp (px)', lay_margin:'Margines ekranu (px)', lay_borderless:'Usuń ramki okien (Borderless)',
+    mon_title:'Monitor & Układ okien', mon_sub:'Zasoby PC, optymalizacja Smart Eco (MaxAlts) oraz siatka kafelkowania okien Roblox.',
+    kpi_win:'Aktywne okna', kpi_cpu:'Zużycie CPU', kpi_ram_rbx:'RAM Roblox', kpi_ram_free:'Wolny RAM PC',
+    mon_chart:'Historia wolnego RAM (ostatnie 60 próbek co 2s)', eco_title:'Silnik Smart Eco (MaxAlts)',
+    eco_enable:'Włącz automatyczną optymalizację okien w tle', eco_fps:'Limit FPS w tle', eco_floor:'Min. próg pamięci roboczej (MB)',
+    eco_cores:'Rezerwuj szybkie rdzenie CPU', eco_idle:'Idle + EcoQoS', eco_trim:'Smart Trim', eco_min:'Minimalizuj tło', btn_apply:'Zastosuj',
+    mon_procs:'Aktywne procesy Roblox', btn_focus:'Pokaż', btn_min:'Minimalizuj', btn_copy:'Kopiuj', tiles_lbl:'okien', live_lbl:'aktywne',
+    afk_page_title:'Anti-AFK & Ochrona sesji', afk_page_sub:'Skonfiguruj impulsy Anti-AFK (bez kolizji z makrami), Watchdog auto-restart, Auto-Reconnect, Crash Breaker oraz harmonogram.',
+    afk_pulse_now:'Wykonaj impuls Anti-AFK teraz', afk_title:'Keep-Alive Anti-AFK', afk_enable:'Aktywuj okresowe odświeżanie aktywności okien',
+    afk_min:'Interwał impulsu (min)', afk_act:'Rodzaj akcji', afk_act_nudge:'Ruch myszą (zalecane)', afk_act_space:'Skok (Spacja)', afk_act_zoom:'Zoom kamery (I/O)',
+    afk_macro_safe:'Impulsy Anti-AFK automatycznie wstrzymują się podczas nagrywania lub odtwarzania makr .v9m.',
+    guard_title:'Watchdog, Auto-Reconnect & Crash Breaker', set_watch:'Watchdog (auto-restart po crashu)',
+    guard_reconn:'Auto-Reconnect po kicku / 277', guard_cb:'Crash Breaker (limit restartów)',
+    guard_wsec:'Cykl Watchdoga (s)', guard_ghost:'Ghost Killer (min bez okna, 0=wył.)',
+    guard_cb_max:'Maks. crashy', guard_cb_win:'Okno czasu (min)', guard_cb_cd:'Pauza po serii (min)',
+    guard_lock:'Auto-blokada panelu po bezczynności (min, 0=wył.)', guard_go_eco:'Otwórz Smart Eco (FPS tła)',
+    sch_title:'Harmonogram farmy (Auto-Restart / Godziny pracy)', sch_sub:'Cykliczne odświeżanie sesji co X godzin oraz automatyczny start/stop o wyznaczonej godzinie.',
+    sch_en:'Aktywuj harmonogram', sch_hours:'Restart co (godz., 0=wył.)', sch_start:'Auto-Start (HH:mm)', sch_stop:'Auto-Stop (HH:mm)', sch_grp:'Grupa docelowa (puste=wszystkie)',
+    pre_title:'Makra (.v9m) & Presety', pre_sub:'Klasyczna nagrywarka makr z globalnymi skrótami F9/F10, pętlą ciągłą, prędkością odtwarzania oraz zapisem do .v9m.',
+    mac_open_win:'Otwórz okno Makra (F9 / F10)', mac_classic_title:'Klasyczny Rejestrator & Odtwarzacz (.v9m)',
+    mac_name:'Nazwa pliku (.v9m)', mac_speed:'Prędkość (x)', mac_repeats:'Powtórzenia', mac_pause:'Pauza między pętlami (ms)',
+    mac_target:'Okno docelowe', mac_active_win:'Aktywne okno', mac_loop:'Pętla ciągła (Loop)', mac_moves:'Nagrywaj ruchy myszy', mac_trim:'Przytnij pusty start',
+    mac_lib_title:'Biblioteka plików .v9m', mac_rec:'Nagraj (Hook)', mac_rec_stop:'Stop & zapisz .v9m', mac_stop:'Stop', mac_empty:'Brak zapisanych plików .v9m.',
+    steps_lbl:'kroków', accs_lbl:'kont',
+    pre_saved_title:'Presety farmy', pre_ph:'Nazwa nowego presetu...', pre_save:'Zapisz aktywne okna', pre_load:'Wczytaj',
+    set_title:'Ustawienia & Diagnostyka', set_sub:'Multi-Instance, globalne skróty, kopia .v9vault, alerty Webhook oraz dziennik zdarzeń.',
+    set_core:'Silnik i skróty', set_multi:'Multi-Instance Mutex (wiele okien naraz)',
+    set_autoclean:'Auto-clean RAM (usługa pomocnicza)', set_hotkeys:'Globalne skróty: Ctrl+Shift+T (Siatka), M (RAM), K (Stop)',
+    set_proto_note:'Tryb uruchamiania: wyłącznie protokół roblox-player: (URI).',
+    vault_title:'Szyfrowana kopia .v9vault & Aktualizacje', vault_desc:'Eksportuj lub przywróć wszystkie konta i ustawienia jednym plikiem .v9vault (AES-256 + HMAC).',
+    vault_pw_ph:'Hasło szyfrujące .v9vault...', vault_export:'Eksportuj .v9vault', vault_import:'Importuj .v9vault', upd_check:'Sprawdź GitHub',
+    upd_new:'Nowa wersja: v', upd_up_to_date:'Aktualna wersja: v', upd_failed:'Błąd sprawdzania',
+    wh_title:'Opcjonalne powiadomienia Webhook', wh_desc:'Działa z kolejką SemaphoreSlim i obsługą Retry-After. Brak botów Discord, zdalnych portów LAN ani zbędnych linków.',
+    wh_en:'Włącz powiadomienia Webhook', wh_test:'Testuj Webhook', wh_status_url:'Drugi Webhook dla raportów (opcjonalny)',
+    wh_crash:'Crash procesu', wh_lock:'Blokada 403 / wygasłe cookie', wh_batch:'Start paczki kont', wh_daily:'Raport dzienny',
+    log_open_dir:'Otwórz folder danych', diag_folder:'Folder danych',
+    auth_title:'Zaloguj lub dodaj konto Roblox', auth_sub:'Wybierz metodę poniżej: kod QR, logowanie przez Weba, token cookie, hurtowy import .txt lub JSON.',
+    tab_pick:'Wybierz metodę', tab_qr:'Kod QR', tab_web:'Logowanie Web', tab_cookie:'.ROBLOSECURITY', tab_bulk:'Hurtowy (.txt)', tab_json:'JSON Cookies',
+    pick_qr_desc:'Zeskanuj kod QR telefonem w aplikacji Roblox lub przepisz kod 6-znakowy.',
+    pick_web_desc:'Otwiera izolowane okno przeglądarki na czystym profilu i automatycznie przechwytuje sesję.',
+    pick_cookie_desc:'Wklej pojedyncze cookie lub cały blok tekstu: automatyczny parser wyodrębni tokeny.',
+    pick_bulk_desc:'Dodaj wiele kont naraz z pliku lub listy nick:haslo:cookie.',
+    pick_json_desc:'Wklej lub wczytaj plik .json wyeksportowany bezpośrednio z rozszerzenia przeglądarki.',
+    qr_empty:'Kliknij Generuj QR', qr_code_lbl:'Jednorazowy kod Quick Login:', qr_hint:'Zeskanuj kod QR telefonem w aplikacji Roblox (Więcej → Szybkie logowanie) lub zatwierdź kod w przeglądarce.',
+    qr_gen:'Generuj nowy QR', qr_copy:'Kopiuj kod', qr_confirm_web:'Potwierdź na roblox.com',
+    web_desc:'Otwiera izolowane okno logowania Chromium (Edge / Chrome / Brave) na osobnym profilu tymczasowym bez wylogowywania obecnych kont. Po przejściu 2FA/Captchy token .ROBLOSECURITY zapisze się automatycznie.',
+    web_browser_lbl:'Przeglądarka', web_page_lbl:'Strona startowa', web_start_btn:'Otwórz okno logowania Roblox', web_cancel_btn:'Zatrzymaj sesję',
+    mc_desc:'Wklej pojedyncze cookie lub cały blok tekstu. Parser wyodrębni wszystkie poprawne tokeny.',
+    mb_desc:'Jedno konto na linię w formacie nick:haslo:_|WARNING:...',
+    mj_desc:'Wklej JSON wyeksportowany z rozszerzenia przeglądarki (Cookie-Editor / EditThisCookie) lub wczytaj plik .json.',
+    btn_load_file:'Wczytaj plik .txt', btn_load_json:'Wczytaj plik .json', btn_import_json:'Importuj JSON',
+    m_grp:'Grupa docelowa (opcjonalnie)', m_alias:'Alias / notatka (opcjonalnie)', btn_cancel:'Anuluj', btn_add:'Dodaj do listy', btn_import:'Importuj', btn_save:'Zapisz',
+    me_title:'Edytuj konto', me_alias:'Alias', me_tags:'Tagi (oddzielone przecinkiem)', me_place:'Zapisany Place ID', me_job:'Zapisany Job ID', me_fps:'Limit FPS (0 = globalny)', me_delay:'Opóźnienie (s, 0 = globalne)', me_min:'Minimalizuj po starcie', me_trim:'Przytnij RAM po starcie',
+    lock_title:'Panel zablokowany', lock_desc:'Wpisz hasło aby odblokować v9 MultiRLBX.', lock_btn:'Odblokuj',
+    empty_acc:'Brak kont w bazie. Kliknij + Zaloguj / Dodaj, aby dodać pierwsze konto Roblox.', empty_win:'Brak uruchomionych okien Roblox.', empty_pre:'Brak zapisanych presetów.',
+    btn_guide:'Samouczek', btn_onb_skip:'Pomiń', btn_back:'Wstecz', btn_next:'Dalej', btn_finish:'Zakończ',
+    onb_badge:'Przewodnik', onb_dont_show:'Nie pokazuj ponownie przy starcie', onb_open_tab:'Przejdź do sekcji'
+  },
+  en: {
+    grp_farm:'Farm', grp_sys:'System',
+    nav_accounts:'Accounts', nav_launch_srv:'Launch & Servers', nav_mon_win:'Monitor & Layout',
+    nav_afk:'Anti-AFK & Guard', nav_presets:'Macros (.v9m) & Presets', nav_settings_logs:'Settings & Logs',
+    sub_launch_cfg:'Config & FastFlags', sub_launch_srv:'Server Browser',
+    sub_mon_eco:'Monitor & Smart Eco', sub_mon_lay:'Window Layout',
+    sub_set_main:'Settings & Appearance', sub_set_logs:'Logs & Diagnostics',
+    btn_clean_ram:'Clean RAM', btn_clean_now:'Clean RAM Now', btn_launch_sel:'Launch Selected',
+    btn_launch_all:'Launch All', btn_stop_all:'Stop All', btn_copy_url:'Copy Web UI URL',
+    btn_refresh:'Refresh', conn_err:'Disconnected from local MultiRLBX server (127.0.0.1).',
+    ws_accent:'Accent Color', acc_color_sub:'Choose the primary accent color for your desktop panel.',
+    theme_dark:'Dark', theme_light:'Light',
+    warn_no_roblox:'RobloxPlayerBeta.exe not detected locally (roblox-player: protocol launch remains active).',
+    acc_title:'Accounts & Groups', acc_sub:'Manage Roblox accounts, batch-check cookies, spy on live InGame Presence, and stagger-launch groups.',
+    acc_search_ph:'Search account, alias, group, or tag...', all_groups:'All', grp_ph:'Farm A',
+    btn_auth_hub:'+ Login / Add', btn_check_cookies:'Verify Cookies', btn_check_presence:'Check Presence',
+    col_acc:'Account', col_grp:'Group', col_status:'Status', col_res:'Resources (CPU / RAM)', col_target:'Place / FPS / Delay', col_act:'Actions', col_size:'Size',
+    st_running:'In Game', st_ready:'Ready', st_expired:'Cookie expired', st_locked:'Locked 403',
+    btn_start:'Launch', btn_stop:'Stop', btn_edit:'Edit', btn_del:'Remove',
+    l_title:'Launch & Servers', l_sub:'Configure join mode, FastFlags optimization profile, and pick public servers.',
+    gp_title:'Roblox Game Picker', gp_sub:'Browse trending experiences, search by title, or paste a Place ID / URL to preview stats.',
+    gp_search_ph:'Search game or Place ID...', gp_search_btn:'Search', gp_trend_btn:'Trending',
+    gp_browse_srv:'Browse Servers', gp_loading:'Loading Roblox games...', gp_empty:'No matching Roblox games found.',
+    gp_ccu:'Playing', gp_likes:'Likes', gp_visits:'Visits', gp_max:'Max Players', gp_selected:'Selected Game', gp_creator:'Creator',
+    btn_save_cfg:'Save Settings', l_queue_btn:'Launch Selected Group',
+    l_mode:'Join mode', mode_game:'Game', mode_job:'Server (Job ID)', mode_private:'Private Server', mode_follow:'Follow Player',
+    l_place:'Roblox Place ID or Game URL', l_job:'Server Job ID (optional)',
+    l_priv:'VIP / Private Server Link', l_follow:'Player Username (Follow)', l_delay:'Launch interval (s)',
+    l_fps:'Target FPS cap (0 = default)', l_gfx:'Graphics preset (FFlags)', l_api:'Rendering API',
+    gfx_default:'Default', gfx_low:'Low', gfx_potato:'Potato (Low CPU)', gfx_ultrapotato:'Ultrapotato (Lowest)', gfx_custom:'Custom', api_auto:'Auto (Default)',
+    l_autotile:'Auto-tile windows after batch launch completes', l_custom:'Custom FastFlags (JSON)', l_preview:'Generated ClientAppSettings.json',
+    srv_sub:'Pick low-ping or low-population servers and bind their Job ID directly into your launch config.',
+    srv_asc:'Fewest players (Asc)', srv_desc:'Most players (Desc)', srv_load:'Load Servers', srv_players:'Players', srv_fps:'Server FPS',
+    srv_empty:'Enter a Place ID and click Load Servers.', srv_use:'Use Job ID', srv_need_place:'Enter a Place ID', srv_no_res:'No servers found',
+    lay_apply:'Apply Layout', lay_mode:'Grid mode', lay_sim_count:'Window count (preview)', lay_rows:'Rows (0=auto)', lay_cols:'Columns (0=auto)',
+    lay_gap:'Gap (px)', lay_margin:'Screen margin (px)', lay_borderless:'Strip window borders (Borderless)',
+    mon_title:'Monitor & Window Layout', mon_sub:'PC telemetry, Smart Eco throttling (MaxAlts), and Roblox multi-window tiling grid.',
+    kpi_win:'Active Windows', kpi_cpu:'CPU Load', kpi_ram_rbx:'Roblox RAM', kpi_ram_free:'Free System RAM',
+    mon_chart:'Free RAM History (last 60 samples @ 2s)', eco_title:'Smart Eco Engine (MaxAlts)',
+    eco_enable:'Enable automatic background window throttling', eco_fps:'Background FPS limit', eco_floor:'Minimum working-set floor (MB)',
+    eco_cores:'Reserve fast CPU cores', eco_idle:'Idle + EcoQoS', eco_trim:'Smart Trim', eco_min:'Minimize bg', btn_apply:'Apply',
+    mon_procs:'Active Roblox Processes', btn_focus:'Focus', btn_min:'Minimize', btn_copy:'Copy', tiles_lbl:'tiles', live_lbl:'live',
+    afk_page_title:'Anti-AFK & Session Guard', afk_page_sub:'Configure Anti-AFK pulses, Watchdog auto-relaunch, Kick Auto-Reconnect, Crash Breaker limits, and Farm Scheduler.',
+    afk_pulse_now:'Run Anti-AFK Pulse Now', afk_title:'Keep-Alive Anti-AFK', afk_enable:'Enable periodic window keep-alive pulses',
+    afk_min:'Pulse interval (min)', afk_act:'Action type', afk_act_nudge:'Mouse nudge (recommended)', afk_act_space:'Jump (Space)', afk_act_zoom:'Camera zoom (I/O)',
+    afk_macro_safe:'Anti-AFK pulses pause automatically while recording or playing .v9m macros.',
+    guard_title:'Watchdog, Auto-Reconnect & Crash Breaker', set_watch:'Watchdog (auto-relaunch crashed clients)',
+    guard_reconn:'Auto-Reconnect on kick / 277', guard_cb:'Crash Breaker (limit relaunches)',
+    guard_wsec:'Watchdog check interval (s)', guard_ghost:'Ghost Killer (min headless, 0=off)',
+    guard_cb_max:'Max crashes', guard_cb_win:'Time window (min)', guard_cb_cd:'Cooldown (min)',
+    guard_lock:'Auto-lock UI after idle (min, 0=off)', guard_go_eco:'Open Smart Eco (Bg FPS)',
+    sch_title:'Farm Scheduler (Auto-Restart / Working Hours)', sch_sub:'Automatically restart farm sessions every X hours or run daily start/stop windows.',
+    sch_en:'Enable Scheduler', sch_hours:'Restart every (h, 0=off)', sch_start:'Auto-Start (HH:mm)', sch_stop:'Auto-Stop (HH:mm)', sch_grp:'Target group (blank=all)',
+    pre_title:'Macros (.v9m) & Presets', pre_sub:'Classic macro recorder with global F9/F10 hotkeys, continuous loop mode, playback speed, and .v9m saving.',
+    mac_open_win:'Open Macro Window (F9 / F10)', mac_classic_title:'Classic Macro Recorder & Player (.v9m)',
+    mac_name:'File name (.v9m)', mac_speed:'Speed (x)', mac_repeats:'Repeats', mac_pause:'Pause between loops (ms)',
+    mac_target:'Target window', mac_active_win:'Active window', mac_loop:'Continuous loop', mac_moves:'Record mouse moves', mac_trim:'Trim leading idle',
+    mac_lib_title:'Saved .v9m Library', mac_rec:'Record (Hook)', mac_rec_stop:'Stop & Save .v9m', mac_stop:'Stop', mac_empty:'No saved .v9m macros yet.',
+    steps_lbl:'steps', accs_lbl:'accounts',
+    pre_saved_title:'Saved Presets', pre_ph:'New preset name...', pre_save:'Save Active Setup', pre_load:'Load',
+    set_title:'Settings & Diagnostics', set_sub:'Multi-Instance toggles, global hotkeys, .v9vault backup, Webhook alerts, and event logs.',
+    set_core:'Engine & Hotkeys', set_multi:'Multi-Instance Mutex (allow multiple Roblox clients)',
+    set_autoclean:'Auto-clean RAM (elevated helper)', set_hotkeys:'Global hotkeys: Ctrl+Shift+T (Tile), M (RAM), K (Stop)',
+    set_proto_note:'Launch method: roblox-player: URI protocol only.',
+    vault_title:'Encrypted .v9vault Backup & Updates', vault_desc:'Export or restore all accounts & settings into one .v9vault file (AES-256 + HMAC).',
+    vault_pw_ph:'.v9vault encryption password...', vault_export:'Export .v9vault', vault_import:'Import .v9vault', upd_check:'Check GitHub',
+    upd_new:'New version: v', upd_up_to_date:'Up to date: v', upd_failed:'Check failed',
+    wh_title:'Optional Webhook Alerts', wh_desc:'Serialized via SemaphoreSlim queue with Retry-After backoff. No Discord bots, LAN ports, or invite links.',
+    wh_en:'Enable Webhook notifications', wh_test:'Test Webhook', wh_status_url:'Secondary Status Webhook (optional)',
+    wh_crash:'Process crash', wh_lock:'HTTP 403 / expired cookie', wh_batch:'Batch launch finished', wh_daily:'Daily summary report',
+    log_open_dir:'Open Data Folder', diag_folder:'Data folder',
+    auth_title:'Sign In or Add Roblox Account', auth_sub:'Pick a sign-in method below: QR Code, Web Browser, .ROBLOSECURITY cookie, bulk .txt, or JSON.',
+    tab_pick:'Choose Method', tab_qr:'QR Code', tab_web:'Web Login', tab_cookie:'.ROBLOSECURITY', tab_bulk:'Bulk (.txt)', tab_json:'JSON Cookies',
+    pick_qr_desc:'Scan QR in Roblox Mobile (More -> Quick Login) or approve the 6-char code.',
+    pick_web_desc:'Opens an isolated Chromium profile and captures .ROBLOSECURITY automatically.',
+    pick_cookie_desc:'Paste a single cookie or raw text block: automatic parser extracts valid tokens.',
+    pick_bulk_desc:'Batch import multiple accounts from a file or user:pass:cookie list.',
+    pick_json_desc:'Paste or load a .json export from Cookie-Editor or EditThisCookie.',
+    qr_empty:'Click Generate QR', qr_code_lbl:'One-time Quick Login code:', qr_hint:'Scan with Roblox Mobile (More → Quick Login) or approve the code in your logged-in browser.',
+    qr_gen:'Generate New QR', qr_copy:'Copy Code', qr_confirm_web:'Confirm on roblox.com',
+    web_desc:'Opens an isolated Chromium login window (Edge / Chrome / Brave) with a temporary profile, keeping existing sessions untouched. .ROBLOSECURITY is captured automatically after Captcha/2FA.',
+    web_browser_lbl:'Browser', web_page_lbl:'Start page', web_start_btn:'Open Roblox Login Window', web_cancel_btn:'Stop Session',
+    mc_desc:'Paste a single cookie or a raw text block. The parser extracts all valid tokens automatically.',
+    mb_desc:'One entry per line in user:pass:_|WARNING:... format.',
+    mj_desc:'Paste JSON exported from Cookie-Editor / EditThisCookie or load a .json file.',
+    btn_load_file:'Load .txt file', btn_load_json:'Load .json file', btn_import_json:'Import JSON',
+    m_grp:'Target group (optional)', m_alias:'Alias / note (optional)', btn_cancel:'Cancel', btn_add:'Add Accounts', btn_import:'Import', btn_save:'Save',
+    me_title:'Edit Account', me_alias:'Alias', me_tags:'Tags (comma-separated)', me_place:'Saved Place ID', me_job:'Saved Job ID', me_fps:'FPS Cap (0 = global)', me_delay:'Delay (s, 0 = global)', me_min:'Minimize on launch', me_trim:'Trim RAM on launch',
+    lock_title:'Panel Locked', lock_desc:'Enter password to unlock v9 MultiRLBX.', lock_btn:'Unlock',
+    empty_acc:'No accounts yet. Click + Login / Add to add your first Roblox profile.', empty_win:'No running Roblox windows.', empty_pre:'No saved presets.',
+    btn_guide:'Quick Tour', btn_onb_skip:'Skip', btn_back:'Back', btn_next:'Next', btn_finish:'Finish',
+    onb_badge:'Quick Guide', onb_dont_show:'Do not show again on startup', onb_open_tab:'Jump to section'
+  }
+};
+
+function t(k){ return (DICT[lang] && DICT[lang][k]) || DICT.pl[k] || k; }
+function esc(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escJs(s){ return esc(String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r|\n/g,' ')); }
+function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('show'); clearTimeout(window.__tt); window.__tt=setTimeout(()=>el.classList.remove('show'),3000); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-back').forEach(m=>{ if(m.id!=='m-lock') m.addEventListener('click',e=>{ if(e.target===m){ if(m.id==='m-auth') closeAuth(); else if(m.id==='m-onboard') closeOnboarding(); else closeModal(m.id); } }); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeAuth(); closeModal('m-edit'); closeOnboarding(); } });
+
+function switchTab(tab){
+  document.querySelectorAll('.side-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='v-'+tab));
+}
+function switchSub(sectionId, subId){
+  const sec = document.getElementById('v-' + sectionId);
+  if(!sec) return;
+  sec.querySelectorAll('.subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===subId));
+  sec.querySelectorAll('.subpanel').forEach(p=>p.classList.toggle('active', p.id==='sub-'+subId));
+}
+
+function applyChrome(){
+  document.documentElement.classList.toggle('dark', themeMode==='dark');
+  document.documentElement.setAttribute('data-accent', accentName);
+  document.documentElement.lang = lang;
+  document.getElementById('langPl').classList.toggle('active', lang==='pl');
+  document.getElementById('langEn').classList.toggle('active', lang==='en');
+  document.querySelectorAll('[data-t]').forEach(el=>{ const v=t(el.dataset.t); if(v) el.textContent=v; });
+  document.querySelectorAll('[data-ph]').forEach(el=>{ const v=t(el.dataset.ph); if(v) el.placeholder=v; });
+  document.getElementById('themeText').textContent = themeMode==='dark' ? t('theme_dark') : t('theme_light');
+  document.getElementById('themeIcon').innerHTML = themeMode==='dark'
+    ? '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'
+    : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>';
+  document.querySelectorAll('.accent-dot').forEach(d=>d.classList.toggle('active', d.dataset.acc===accentName));
+}
+
+function setLanguage(l){
+  lang = l==='en'?'en':'pl';
+  applyChrome();
+  if(state){ renderAccounts(); renderMonitor(); renderLayoutPreview(); renderPresets(); }
+  renderGamePicker();
+  apiPost('api/settings',{language:lang});
+}
+function toggleTheme(){ themeMode = themeMode==='dark'?'light':'dark'; applyChrome(); apiPost('api/settings',{theme:themeMode==='dark'?'Dark':'Light'}); }
+function setAccent(name){ accentName = name; applyChrome(); apiPost('api/settings',{accent:name}); }
+
+async function apiGet(ep){
+  const sep = ep.includes('?') ? '&' : '?';
+  const r = await fetch(ep + sep + 't=' + encodeURIComponent(T), { cache:'no-store' });
+  return r.json();
+}
+async function apiPost(ep, body){
+  try{
+    const r = await fetch(ep + '?t=' + encodeURIComponent(T), {
+      method:'POST', headers:{'Content-Type':'application/json','X-MultiRLBX-Token':T}, body:JSON.stringify(body||{})
+    });
+    const j = await r.json();
+    if(j.message) toast(j.message);
+    if(!j.ok && j.error) toast(j.error);
+    setTimeout(refresh, 300);
+    return j;
+  }catch(e){ toast(t('conn_err')); return {ok:false}; }
+}
+
+async function refresh(){
+  try{
+    const j = await apiGet('api/state');
+    const dot = document.getElementById('connDot');
+    const cb = document.getElementById('connBanner');
+    if(!j || !j.ok){
+      dot.className='conn-dot err';
+      cb.style.display='flex';
+      return;
+    }
+    dot.className='conn-dot ok';
+    cb.style.display='none';
+    state = j;
+
+    document.getElementById('m-lock').classList.toggle('open', !!j.locked);
+    document.getElementById('robloxBanner').style.display = j.robloxFound === false ? 'flex' : 'none';
+
+    if(!synced && j.settings){
+      synced = true;
+      lang = j.settings.Language === 'en' ? 'en' : 'pl';
+      themeMode = j.settings.Theme === 'Light' ? 'light' : 'dark';
+      accentName = ['Emerald','Blue','Purple','Amber','Rose'].includes(j.settings.Accent) ? j.settings.Accent : 'Emerald';
+      applyChrome();
+      syncFormsFromSettings(j.settings);
+    }
+
+    document.getElementById('k-win').textContent = j.runningCount || 0;
+    document.getElementById('k-cpu').textContent = (j.robloxCpu || 0).toFixed(1) + '%';
+    document.getElementById('k-rbx-ram').textContent = (j.robloxRamMb || 0) + ' MB';
+    document.getElementById('k-ram').textContent = (j.freeRamMb || 0) + ' MB';
+    document.getElementById('sideSysStats').textContent = 'RAM: ' + (j.freeRamMb||0) + ' MB | ' + (j.runningCount||0) + ' ' + t('tiles_lbl');
+    const qEl = document.getElementById('topQueueText');
+    if(qEl){
+      if(j.launching){ qEl.style.display='block'; qEl.textContent = (lang==='pl'?'Kolejka: ':'Queue: ') + j.queueDone + '/' + j.queueTotal + ' · ' + j.queueCurrent; }
+      else { qEl.style.display='none'; qEl.textContent = ''; }
+    }
+    document.getElementById('diagUrl').textContent = j.localUrl || location.href;
+    document.getElementById('diagMi').textContent = j.multiInstanceState || 'Off';
+    document.getElementById('diagDir').textContent = j.dataDir || '-';
+
+    refreshHeadshots();
+    renderAccounts();
+    renderMonitor();
+    renderLayoutPreview();
+    renderRamChart();
+    renderPresets();
+    renderLogs();
+    renderGfxPreview();
+  }catch(e){
+    document.getElementById('connDot').className='conn-dot err';
+    document.getElementById('connBanner').style.display='flex';
+  }
+}
+
+function syncFormsFromSettings(s){
+  setLaunchMode(s.LastMode || 'Game', true);
+  document.getElementById('l-place').value = s.LastPlaceId || '';
+  document.getElementById('srvPlace').value = s.LastPlaceId || '';
+  updatePlaceParsed();
+  document.getElementById('l-job').value = s.LastJobId || '';
+  document.getElementById('l-priv').value = s.LastPrivate || '';
+  document.getElementById('l-follow').value = s.LastFollow || '';
+  document.getElementById('s-delay').value = s.LaunchDelaySec || 8;
+  document.getElementById('s-delay-lbl').textContent = (s.LaunchDelaySec || 8) + 's';
+  document.getElementById('s-fps').value = s.FpsCap || 0;
+  document.getElementById('s-fps-lbl').textContent = (s.FpsCap || 0) + ' FPS';
+  const presetMap = {Light:'Low', LowCpu:'Potato', Lowest:'Ultrapotato'};
+  const pVal = (s.Gfx && (presetMap[s.Gfx.Preset] || s.Gfx.Preset)) || 'Default';
+  document.getElementById('s-gfx').value = ['Default','Low','Potato','Ultrapotato','Custom'].includes(pVal) ? pVal : 'Default';
+  document.getElementById('s-api').value = (s.Gfx && s.Gfx.Api) || 'Default';
+  document.getElementById('s-autotile').checked = !!s.AutoTileOnBatch;
+  document.getElementById('s-fflags').value = s.CustomClientSettings || '';
+
+  if(s.Layout){
+    setLayoutMode(s.Layout.Mode || 'Auto', true);
+    document.getElementById('lay-rows').value = s.Layout.Rows || 0;
+    document.getElementById('lay-cols').value = s.Layout.Cols || 0;
+    document.getElementById('lay-gap').value = s.Layout.Gap || 0;
+    document.getElementById('lay-gap-lbl').textContent = (s.Layout.Gap || 0) + ' px';
+    document.getElementById('lay-margin').value = s.Layout.Margin || 0;
+    document.getElementById('lay-margin-lbl').textContent = (s.Layout.Margin || 0) + ' px';
+    document.getElementById('lay-borderless').checked = !!s.Layout.Borderless;
+  }
+
+  document.getElementById('eco-on').checked = !!s.MaxAlts;
+  document.getElementById('eco-fps').value = s.MaxAltsFps || 10;
+  document.getElementById('eco-fps-lbl').textContent = (s.MaxAltsFps || 10) + ' FPS';
+  document.getElementById('eco-minmb').value = s.MaxAltsTrimMinMb || 350;
+  document.getElementById('eco-minmb-lbl').textContent = (s.MaxAltsTrimMinMb || 350) + ' MB';
+  document.getElementById('eco-cores').value = s.MaxAltsCores || 0;
+  document.getElementById('eco-cores-lbl').textContent = s.MaxAltsCores || 0;
+  document.getElementById('eco-idle').checked = !!s.MaxAltsIdle;
+  document.getElementById('eco-trim').checked = !!s.MaxAltsTrimSmart;
+  document.getElementById('eco-min').checked = !!s.MaxAltsMinimize;
+  document.getElementById('mem-thresh').value = (s.Mem && s.Mem.Threshold) || 80;
+
+  document.getElementById('afk-on').checked = !!s.AntiAfk;
+  document.getElementById('afk-min').value = s.AntiAfkMin || 12;
+  document.getElementById('afk-min-lbl').textContent = (s.AntiAfkMin || 12) + ' min';
+  document.getElementById('afk-act').value = s.AntiAfkAction || 'Nudge';
+  document.getElementById('afk-watch').checked = !!s.AutoRelaunch;
+  document.getElementById('afk-reconn').checked = !!s.AutoReconnectKick;
+  document.getElementById('afk-wsec').value = s.WatcherSec || 30;
+  document.getElementById('afk-cb').checked = !!s.CrashBreaker;
+  document.getElementById('afk-cbmax').value = s.CrashBreakerMax || 3;
+  document.getElementById('afk-cbwin').value = s.CrashBreakerWindowMin || 15;
+  document.getElementById('afk-cbcd').value = s.CrashBreakerCooldownMin || 30;
+  document.getElementById('afk-ghost').value = s.GhostMin || 0;
+  document.getElementById('afk-lockmin').value = s.LockIdleMin || 0;
+  document.getElementById('sch-on').checked = !!s.ScheduleEnabled;
+  document.getElementById('sch-hours').value = s.ScheduleRestartHours || 0;
+  document.getElementById('sch-start').value = s.ScheduleStartTime || '';
+  document.getElementById('sch-stop').value = s.ScheduleStopTime || '';
+  document.getElementById('sch-grp').value = s.ScheduleGroup || '';
+
+  if(s.Macro){
+    document.getElementById('mac-speed').value = s.Macro.Speed || 1;
+    document.getElementById('mac-repeats').value = s.Macro.Repeats || 1;
+    document.getElementById('mac-pause').value = s.Macro.PauseMs || 0;
+    document.getElementById('mac-loop').checked = !!s.Macro.Continuous;
+    document.getElementById('mac-moves').checked = !!s.Macro.RecordMoves;
+    document.getElementById('mac-trim').checked = s.Macro.TrimLeadingIdle !== false;
+  }
+
+  document.getElementById('set-multi').checked = !!s.MultiInstance;
+  document.getElementById('set-memclean').checked = !!(s.Mem && s.Mem.AutoClean);
+  document.getElementById('set-hotkeys').checked = s.GlobalHotkeys !== false;
+
+  document.getElementById('wh-on').checked = !!s.Webhook;
+  document.getElementById('wh-url').value = s.WebhookUrl || '';
+  document.getElementById('wh-status').value = s.WebhookStatusUrl || '';
+  document.getElementById('wh-crash').checked = !!s.WebhookCrash;
+  document.getElementById('wh-lock').checked = !!s.WebhookLocked;
+  document.getElementById('wh-batch').checked = !!s.WebhookBatch;
+  document.getElementById('wh-daily').checked = !!s.DailyReport;
+}
+
+const PORTRAIT_HEADS = ['#FACC15','#FDBA74','#E2E8F0','#6EE7B7','#C4B5FD','#FCA5A5'];
+const PORTRAIT_TORSOS = ['#2563EB','#10B981','#E11D48','#7C3AED','#334155','#D97706'];
+const PORTRAIT_BGS = ['#0F172A','#1E1B4B','#064E3B','#3B0764','#1F2937','#3F1D28'];
+const PORTRAIT_ACC = ['none','shades','cap','headset','crown','bandana'];
+
+function hashPortraitSeed(seed){
+  let h = 2166136261;
+  const s = seed || 'noob';
+  for(let i = 0; i < s.length; i++){
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+const headshotCache = {};
+let headshotLastKey = '';
+let headshotBusy = false;
+
+async function refreshHeadshots(){
+  if(!state || !state.accounts || !state.accounts.length || headshotBusy) return;
+  const key = state.accounts.map(a=>(a.userId||0)+':'+(a.username||a.name||'')).join('|');
+  if(!key || key === headshotLastKey) return;
+  headshotLastKey = key;
+  headshotBusy = true;
+  try{
+    const names = [];
+    const ids = [];
+    state.accounts.forEach(a=>{
+      if(a.userId > 0) ids.push(a.userId);
+      const u = (a.username || a.name || '').trim();
+      if(u) names.push(u);
+    });
+    const j = await apiGet('api/accounts/headshots?usernames=' + encodeURIComponent(names.join(',')) + '&userIds=' + encodeURIComponent(ids.join(',')));
+    if(j && j.ok && j.headshots){
+      Object.keys(j.headshots).forEach(k=>{
+        const entry = j.headshots[k];
+        if(entry && (entry.HeadshotUrl || entry.headshotUrl)){
+          headshotCache[k.toLowerCase()] = entry.HeadshotUrl || entry.headshotUrl;
+        }
+      });
+      renderAccounts();
+    }
+  }catch(e){}
+  finally{ headshotBusy = false; }
+}
+
+function renderBlockySvg(seed, mood, size, tags){
+  const h = hashPortraitSeed(seed);
+  const tagLower = (tags || '').toLowerCase();
+  const head = PORTRAIT_HEADS[h % PORTRAIT_HEADS.length];
+  const torso = PORTRAIT_TORSOS[(h >>> 4) % PORTRAIT_TORSOS.length];
+  const bg = PORTRAIT_BGS[(h >>> 12) % PORTRAIT_BGS.length];
+  let acc = PORTRAIT_ACC[(h >>> 8) % PORTRAIT_ACC.length];
+  if(tagLower.includes('main')) acc = 'crown';
+  else if(tagLower.includes('eco') || tagLower.includes('afk')) acc = 'headset';
+  else if(tagLower.includes('shop') || tagLower.includes('trade')) acc = 'shades';
+
+  let face = '<rect x="24" y="23.5" width="3" height="4.6" rx="1.3" fill="#1E293B"/><rect x="37" y="23.5" width="3" height="4.6" rx="1.3" fill="#1E293B"/><path d="M26.5 33 Q32 38 37.5 32.8" stroke="#1E293B" stroke-width="2.3" stroke-linecap="round" fill="none"/>';
+  if(mood === 'dizzy'){
+    face = '<g stroke="#1E293B" stroke-width="2.2" stroke-linecap="round"><path d="M23.5 24 L27.5 28 M27.5 24 L23.5 28"/><path d="M36.5 24 L40.5 28 M40.5 24 L36.5 28"/><path d="M26.5 34.5 Q29.2 32.5 32 34.5 Q34.8 36.5 37.5 34.5" fill="none"/></g>';
+  }else if(mood === 'shocked'){
+    face = '<circle cx="25.5" cy="26" r="3.1" fill="#FFF" stroke="#1E293B" stroke-width="1.7"/><circle cx="38.5" cy="26" r="3.1" fill="#FFF" stroke="#1E293B" stroke-width="1.7"/><circle cx="25.5" cy="26" r="1.2" fill="#1E293B"/><circle cx="38.5" cy="26" r="1.2" fill="#1E293B"/><ellipse cx="32" cy="34.5" rx="3" ry="3.2" fill="#1E293B"/><path d="M44 21.5 C44 21.5 46.2 24 46.2 25.4 A2.2 2.2 0 1 1 41.8 25.4 C41.8 24 44 21.5 44 21.5 Z" fill="#38BDF8"/>';
+  }else if(mood === 'chill'){
+    face = '<g stroke="#1E293B" stroke-width="2.3" stroke-linecap="round"><line x1="23" y1="26" x2="28" y2="26"/><line x1="36" y1="26" x2="41" y2="26"/><path d="M27.5 33.5 Q32 36 36.5 33.5" fill="none"/></g>';
+  }else if(mood === 'sneaky'){
+    face = '<rect x="24" y="24" width="3" height="4.3" rx="1.3" fill="#1E293B"/><path d="M36 26.5 L41 25.2" stroke="#1E293B" stroke-width="2.3" stroke-linecap="round"/><path d="M27 34 Q32.5 36.8 38.5 32.5" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" fill="none"/>';
+  }else if(mood === 'wired'){
+    face = '<circle cx="25.5" cy="26" r="2.6" fill="#1E293B"/><circle cx="38.5" cy="26" r="2.6" fill="#1E293B"/><circle cx="26.2" cy="25.2" r="0.85" fill="#FFF"/><circle cx="39.2" cy="25.2" r="0.85" fill="#FFF"/><path d="M25.5 34 L29 32.6 L32 34.4 L35 32.6 L38.5 34" stroke="#1E293B" stroke-width="2" stroke-linecap="round" fill="none"/>';
+  }
+
+  let hat = '';
+  if((acc === 'shades' || mood === 'boss') && mood !== 'dizzy' && mood !== 'shocked'){
+    hat += '<rect x="19.5" y="22.5" width="10.8" height="6" rx="1.4" fill="#0F172A"/><rect x="33.7" y="22.5" width="10.8" height="6" rx="1.4" fill="#0F172A"/><rect x="30.3" y="24.2" width="3.4" height="1.8" fill="#0F172A"/>';
+  }else if(acc === 'cap' || mood === 'sneaky'){
+    hat += '<path d="M17 18 C17 11.5 23.5 9.5 32 9.5 C40.5 9.5 47 11.5 47 18 Z" fill="#EF4444"/><rect x="33" y="15.5" width="18" height="3.6" rx="1.8" fill="#DC2626"/>';
+  }else if(acc === 'crown'){
+    hat += '<path d="M21.5 16 L23.5 8.5 L28.5 12.5 L32 7.5 L35.5 12.5 L40.5 8.5 L42.5 16 Z" fill="#FBBF24" stroke="#B45309" stroke-width="1.2"/>';
+  }else if(acc === 'headset' || mood === 'zen'){
+    hat += '<path d="M16 27 V21 C16 12.5 22.5 9 32 9 C41.5 9 48 12.5 48 21 V27" stroke="#38BDF8" stroke-width="2.6" fill="none"/><rect x="12.5" y="22" width="4.5" height="8.5" rx="2" fill="#0284C7"/><rect x="47" y="22" width="4.5" height="8.5" rx="2" fill="#0284C7"/>';
+  }else if(acc === 'bandana' || mood === 'wired'){
+    hat += '<rect x="17.5" y="17" width="29" height="4" rx="1.4" fill="#F97316"/><path d="M46.5 18 L53 15.5 L51.5 20.5 Z" fill="#EA580C"/>';
+  }
+
+  const mug = mood === 'wired' ? '<g transform="translate(43,43)"><rect x="0" y="3" width="9" height="9" rx="2" fill="#F8FAFC" stroke="#1E293B" stroke-width="1.3"/></g>' : '';
+  const px = size || 38;
+  return `<svg class="acc-portrait" width="${px}" height="${px}" viewBox="0 0 64 64" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="10" fill="${bg}"/><circle cx="12" cy="12" r="2" fill="#FFF" fill-opacity="0.08"/><circle cx="52" cy="12" r="2" fill="#FFF" fill-opacity="0.08"/><rect x="15" y="42" width="34" height="15" rx="4.5" fill="${torso}"/><rect x="18" y="16" width="28" height="24" rx="5" fill="${head}"/><rect x="26.5" y="12.5" width="11" height="3.5" rx="1.2" fill="${head}"/>${face}${hat}${mug}</svg>`;
+}
+
+function renderAccountPortrait(a, mood, size){
+  const uname = (a.username || a.name || '').trim();
+  const imgUrl = (a.userId > 0 && headshotCache[String(a.userId)]) || headshotCache[uname.toLowerCase()] || '';
+  const px = size || 38;
+  const fallback = renderBlockySvg(uname || 'noob', mood, px, a.tags);
+  if(imgUrl){
+    return `<div class="acc-portrait-box" style="width:${px}px;height:${px}px"><img src="${esc(imgUrl)}" alt="${esc(uname)}" loading="lazy" onerror="this.parentNode.innerHTML=this.getAttribute('data-fb')" data-fb="${esc(fallback)}"></div>`;
+  }
+  return `<div class="acc-portrait-box" style="width:${px}px;height:${px}px">${fallback}</div>`;
+}
+
+function formatLastUsed(raw){
+  const v = (raw || '').trim();
+  if(!v) return '-';
+  if(lang !== 'pl') return v;
+  if(v === 'never') return 'nigdy';
+  if(v === 'just now') return 'przed chwilą';
+  return v.replace(' min ago',' min temu').replace(' h ago',' godz. temu').replace(' days ago',' dni temu');
+}
+
+function presenceBadge(a){
+  if(a.presenceType === 2) return '<span class="st-online">InGame' + (a.presenceWhere ? ' · ' + esc(a.presenceWhere) : '') + '</span>';
+  if(a.presenceType === 1) return '<span class="st-idle">Website</span>';
+  if(a.presenceType === 3) return '<span class="st-warn">Studio</span>';
+  if(a.presenceType === 0) return '<span class="muted mono">Offline</span>';
+  return '';
+}
+
+function renderAccounts(){
+  if(!state) return;
+  const all = state.accounts || [];
+  const groups = [...new Set(all.map(a=>a.group).filter(Boolean))].sort();
+  if(activeGroup !== '__all__' && !groups.includes(activeGroup)) activeGroup = '__all__';
+
+  document.getElementById('groupPills').innerHTML =
+    `<button type="button" class="f-pill ${activeGroup==='__all__'?'active':''}" onclick="activeGroup='__all__';renderAccounts()">${esc(t('all_groups'))} (${all.length})</button>` +
+    groups.map(g=>`<button type="button" class="f-pill ${activeGroup===g?'active':''}" onclick="activeGroup='${escJs(g)}';renderAccounts()">${esc(g)}</button>`).join('');
+
+  const q = (document.getElementById('accSearch').value || '').trim().toLowerCase();
+  const list = all.filter(a=>(activeGroup==='__all__' || a.group===activeGroup) && (!q || (a.name+' '+a.username+' '+a.group+' '+(a.tags||'')).toLowerCase().includes(q)));
+  document.getElementById('selCount').textContent = selected.size;
+
+  document.getElementById('accBody').innerHTML = list.map(a=>{
+    const pr = presenceBadge(a);
+    const mood = a.running ? 'hype' : (a.locked ? 'shocked' : (a.loginLost ? 'dizzy' : 'chill'));
+    const lu = formatLastUsed(a.lastUsed);
+    const stHtml = a.running
+      ? `<span class="st-online">${esc(t('st_running'))}</span><div class="muted mono">PID ${a.pid}</div>${pr ? '<div>'+pr+'</div>' : ''}`
+      : (a.locked
+        ? `<span class="st-bad">${esc(t('st_locked'))}</span><div class="muted mono">${esc(lu)}</div>`
+        : (a.loginLost
+          ? `<span class="st-warn">${esc(t('st_expired'))}</span><div class="muted mono">${esc(lu)}</div>`
+          : `<span class="st-idle">${esc(t('st_ready'))}</span><div class="muted mono">${esc(lu)}</div>${pr ? '<div>'+pr+'</div>' : ''}`));
+    const fps = a.fpsCap > 0 ? a.fpsCap : (state.settings ? state.settings.FpsCap : 0);
+    const delay = a.launchDelaySec > 0 ? a.launchDelaySec : (state.settings ? state.settings.LaunchDelaySec : 8);
+    const tagsHtml = (a.tags||'').split(',').map(x=>x.trim()).filter(Boolean).map(x=>`<span>#${esc(x)}</span>`).join('');
+    const portraitHtml = renderAccountPortrait(a, mood, 38);
+    return `<tr>
+      <td><input type="checkbox" ${selected.has(a.id)?'checked':''} onchange="toggleSel('${escJs(a.id)}',this.checked)"></td>
+      <td><div class="acc-cell">${portraitHtml}<div style="min-width:0"><div style="font-weight:600">${esc(a.username || a.name)}</div><div class="muted mono">${esc(a.alias || a.displayName || '')}</div>${tagsHtml ? '<div class="acc-tags">'+tagsHtml+'</div>' : ''}</div></div></td>
+      <td>${esc(a.group || '-')}</td>
+      <td>${stHtml}</td>
+      <td style="text-align:right" class="mono">${a.running ? (a.cpu.toFixed(1)+'% · '+a.ramMb+' MB') : '0.0% · 0 MB'}</td>
+      <td style="text-align:right" class="mono muted">${esc(a.savedPlaceId||'-')} · ${fps} FPS · ${delay}s</td>
+      <td style="text-align:right">
+        <div style="display:inline-flex;gap:6px">
+          ${a.running
+            ? `<button type="button" class="btn btn-danger btn-xs" onclick="apiPost('api/stop',{account:'${escJs(a.username)}'})">${esc(t('btn_stop'))}</button>`
+            : `<button type="button" class="btn btn-primary btn-xs" onclick="launchOne('${escJs(a.id)}')">${esc(t('btn_start'))}</button>`}
+          <button type="button" class="btn btn-xs" onclick="openEdit('${escJs(a.id)}')">${esc(t('btn_edit'))}</button>
+          <button type="button" class="btn btn-xs" onclick="apiPost('api/accounts/delete',{id:'${escJs(a.id)}'})">${esc(t('btn_del'))}</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="7" class="muted" style="text-align:center;padding:34px"><div style="display:flex;flex-direction:column;align-items:center;gap:10px">${renderBlockySvg('empty-lobby','dizzy',52,'')}<span>${esc(t('empty_acc'))}</span></div></td></tr>`;
+}
+
+function toggleSel(id, on){ if(on)selected.add(id); else selected.delete(id); document.getElementById('selCount').textContent = selected.size; }
+function toggleAllSel(on){ if(!state)return; selected.clear(); if(on)state.accounts.forEach(a=>selected.add(a.id)); renderAccounts(); }
+function launchOne(id){ const place = document.getElementById('l-place').value.trim(); apiPost('api/launch', place ? {ids:[id], placeId:place, mode:launchMode} : {ids:[id]}); }
+function launchSelectedOrAll(){ const ids=[...selected]; const place = document.getElementById('l-place').value.trim(); const payload = ids.length ? {ids} : {all:true}; if(place) payload.placeId = place; apiPost('api/launch', payload); }
+function launchWithSpec(all){ apiPost('api/launch',{all, ids:all?[]:[...selected], mode:launchMode, placeId:document.getElementById('l-place').value, jobId:document.getElementById('l-job').value, privateLink:document.getElementById('l-priv').value, follow:document.getElementById('l-follow').value}); }
+function stopAll(){ apiPost('api/stop',{}); }
+function cleanRam(){ apiPost('api/mem/clean',{}); }
+async function checkAllCookies(){ document.getElementById('chkIcon').classList.add('spin'); try{ await apiPost('api/accounts/check-all',{}); }finally{ document.getElementById('chkIcon').classList.remove('spin'); } }
+async function checkAllPresence(){ await apiPost('api/accounts/check-presence',{}); }
+let qrSession = null;
+let qrTimer = null;
+let webTimer = null;
+
+function openAuth(tab){
+  openModal('m-auth');
+  switchAuthTab(tab || 'pick');
+}
+function closeAuth(){
+  if(qrTimer){ clearInterval(qrTimer); qrTimer = null; }
+  if(webTimer){ clearInterval(webTimer); webTimer = null; }
+  closeModal('m-auth');
+}
+function switchAuthTab(tab){
+  document.querySelectorAll('#authTabs .subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.auth===tab));
+  ['pick','qr','web','cookie','bulk','json'].forEach(id=>{
+    const el = document.getElementById('auth-'+id);
+    if(el) el.classList.toggle('active', id===tab);
+  });
+  const shared = document.getElementById('authSharedMeta');
+  if(shared) shared.style.display = tab==='pick' ? 'none' : 'grid';
+  if(tab === 'qr' && !qrSession) startQrLogin();
+}
+
+function setBanner(id, kind, text){
+  const el = document.getElementById(id);
+  if(!text){ el.style.display='none'; return; }
+  el.style.display = 'flex';
+  el.className = 'banner' + (kind ? ' ' + kind : '');
+  el.textContent = text;
+}
+
+async function startQrLogin(){
+  if(qrTimer){ clearInterval(qrTimer); qrTimer = null; }
+  qrSession = null;
+  document.getElementById('qrGenBtn').disabled = true;
+  document.getElementById('qrCopyBtn').disabled = true;
+  document.getElementById('qrOpenBtn').disabled = true;
+  document.getElementById('qrCodeText').textContent = '......';
+  document.getElementById('qrExpiryText').textContent = lang==='pl' ? 'Łączenie z Roblox Quick Login...' : 'Contacting Roblox Quick Login...';
+  setBanner('qrStatusBanner', '', '');
+  try{
+    const res = await apiPost('api/accounts/qr-start', {});
+    if(!res || !res.ok){
+      document.getElementById('qrExpiryText').textContent = '-';
+      setBanner('qrStatusBanner', 'err', (res && res.error) || 'Quick Login error');
+      return;
+    }
+    qrSession = res;
+    document.getElementById('qrSvgBox').innerHTML = res.qrSvg || '';
+    const c = res.code || '';
+    document.getElementById('qrCodeText').textContent = c.length===6 ? (c.slice(0,3)+' '+c.slice(3)) : c;
+    document.getElementById('qrExpiryText').textContent = (lang==='pl' ? 'Wygasa: ' : 'Expires: ') + (res.expirationTime ? new Date(res.expirationTime).toLocaleTimeString() : '~5 min');
+    document.getElementById('qrCopyBtn').disabled = false;
+    document.getElementById('qrOpenBtn').disabled = false;
+    setBanner('qrStatusBanner', 'warn', lang==='pl' ? 'Oczekiwanie na zeskanowanie lub wpisanie kodu...' : 'Waiting for QR scan or code confirmation...');
+
+    qrTimer = setInterval(async ()=>{
+      if(!qrSession || !document.getElementById('m-auth').classList.contains('open')) return;
+      try{
+        const p = await fetch('api/accounts/qr-poll?t=' + encodeURIComponent(T), {
+          method:'POST',
+          headers:{'Content-Type':'application/json','X-MultiRLBX-Token':T},
+          body:JSON.stringify({
+            code: qrSession.code,
+            privateKey: qrSession.privateKey,
+            group: document.getElementById('ma-grp').value,
+            alias: document.getElementById('ma-alias').value
+          })
+        });
+        const pj = await p.json();
+        if(!pj.ok){
+          setBanner('qrStatusBanner', 'err', pj.error || 'QR poll error');
+          clearInterval(qrTimer); qrTimer = null;
+          return;
+        }
+        if(pj.completed){
+          clearInterval(qrTimer); qrTimer = null;
+          setBanner('qrStatusBanner', '', (lang==='pl' ? 'Zalogowano: ' : 'Signed in: ') + (pj.accountName || 'OK'));
+          toast(pj.message || 'OK');
+          setTimeout(refresh, 250);
+          return;
+        }
+        if(pj.status === 'UserLinked'){
+          setBanner('qrStatusBanner', 'warn', (lang==='pl' ? 'Kod powiązany (' : 'Code linked (') + (pj.accountName || 'Roblox') + (lang==='pl' ? '): kliknij Potwierdź na urządzeniu.' : '): confirm on your device.'));
+        }else if(pj.status === 'Expired' || pj.status === 'Cancelled'){
+          clearInterval(qrTimer); qrTimer = null;
+          setBanner('qrStatusBanner', 'err', lang==='pl' ? 'Kod wygasł lub został anulowany. Wygeneruj nowy.' : 'Code expired or cancelled. Generate a new one.');
+        }
+      }catch(e){}
+    }, 2000);
+  }finally{
+    document.getElementById('qrGenBtn').disabled = false;
+  }
+}
+
+function copyQrCode(){
+  if(!qrSession || !qrSession.code) return;
+  if(navigator.clipboard) navigator.clipboard.writeText(qrSession.code).catch(()=>{});
+  toast((lang==='pl' ? 'Skopiowano kod: ' : 'Copied code: ') + qrSession.code);
+}
+function openQrConfirm(){
+  if(!qrSession || !qrSession.code) return;
+  apiPost('api/accounts/open-confirm', { code: qrSession.code });
+}
+
+async function startWebLogin(){
+  if(webTimer){ clearInterval(webTimer); webTimer = null; }
+  const res = await apiPost('api/accounts/web-login-start', {
+    url: document.getElementById('wb-url').value,
+    browser: document.getElementById('wb-browser').value,
+    group: document.getElementById('ma-grp').value,
+    alias: document.getElementById('ma-alias').value
+  });
+  if(!res || !res.ok){
+    setBanner('webStatusBanner', 'err', (res && res.error) || 'Browser launch error');
+    return;
+  }
+  document.getElementById('wbCancelBtn').style.display = 'inline-flex';
+  setBanner('webStatusBanner', 'warn', (lang==='pl' ? 'Otwarto ' : 'Opened ') + (res.browser || 'Chromium') + (lang==='pl' ? ': zaloguj się na roblox.com, a cookie zapisze się automatycznie.' : ': complete Roblox login and your cookie will save automatically.'));
+  webTimer = setInterval(async ()=>{
+    try{
+      const st = await apiGet('api/accounts/web-login-status');
+      if(!st || !st.ok) return;
+      if(st.completed){
+        clearInterval(webTimer); webTimer = null;
+        document.getElementById('wbCancelBtn').style.display = 'none';
+        setBanner('webStatusBanner', '', (lang==='pl' ? 'Przechwycono sesję dla konta: ' : 'Captured session for: ') + (st.username || 'Roblox'));
+        toast((lang==='pl' ? 'Dodano konto: ' : 'Added account: ') + (st.username || 'OK'));
+        setTimeout(refresh, 250);
+      }else if(!st.active){
+        clearInterval(webTimer); webTimer = null;
+        document.getElementById('wbCancelBtn').style.display = 'none';
+        if(st.error) setBanner('webStatusBanner', 'err', st.error);
+      }
+    }catch(e){}
+  }, 1200);
+}
+async function cancelWebLogin(){
+  if(webTimer){ clearInterval(webTimer); webTimer = null; }
+  document.getElementById('wbCancelBtn').style.display = 'none';
+  await apiPost('api/accounts/web-login-cancel', {});
+  setBanner('webStatusBanner', 'warn', lang==='pl' ? 'Anulowano sesję logowania.' : 'Web login session cancelled.');
+}
+
+function loadTextFile(input, targetId){
+  const f = input && input.files && input.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{ document.getElementById(targetId).value = String(reader.result || ''); };
+  reader.readAsText(f);
+  input.value = '';
+}
+
+async function submitCookie(){
+  const raw = document.getElementById('mc-raw').value;
+  const grp = document.getElementById('ma-grp').value;
+  const alias = document.getElementById('ma-alias').value;
+  const res = await apiPost('api/accounts/add-cookie',{raw, group:grp, alias});
+  if(res && res.ok){ document.getElementById('mc-raw').value=''; closeAuth(); }
+}
+async function submitBulk(){
+  const raw = document.getElementById('mb-raw').value;
+  const grp = document.getElementById('ma-grp').value;
+  const alias = document.getElementById('ma-alias').value;
+  const res = await apiPost('api/accounts/bulk-import',{raw, group:grp, alias});
+  if(res && res.ok){ document.getElementById('mb-raw').value=''; closeAuth(); }
+}
+async function submitJsonCookies(){
+  const raw = document.getElementById('mj-raw').value;
+  const grp = document.getElementById('ma-grp').value;
+  const alias = document.getElementById('ma-alias').value;
+  const res = await apiPost('api/accounts/import-json',{raw, group:grp, alias});
+  if(res && res.ok){ document.getElementById('mj-raw').value=''; closeAuth(); }
+}
+function submitUnlock(){ apiPost('api/unlock',{password:document.getElementById('lock-pw').value}); document.getElementById('lock-pw').value=''; }
+
+function openEdit(id){
+  if(!state) return;
+  const a = (state.accounts||[]).find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById('me-id').value = a.id;
+  document.getElementById('me-user').textContent = '@' + (a.username || a.name);
+  document.getElementById('me-alias').value = a.alias || '';
+  document.getElementById('me-grp').value = a.group || '';
+  document.getElementById('me-tags').value = a.tags || '';
+  document.getElementById('me-place').value = a.savedPlaceId || '';
+  document.getElementById('me-job').value = a.savedJobId || '';
+  document.getElementById('me-fps').value = a.fpsCap || 0;
+  document.getElementById('me-delay').value = a.launchDelaySec || 0;
+  document.getElementById('me-min').checked = !!a.seqMinimize;
+  document.getElementById('me-trim').checked = !!a.seqTrim;
+  openModal('m-edit');
+}
+function submitEdit(){
+  apiPost('api/accounts/update',{
+    id:document.getElementById('me-id').value,
+    alias:document.getElementById('me-alias').value,
+    group:document.getElementById('me-grp').value,
+    tags:document.getElementById('me-tags').value,
+    savedPlaceId:document.getElementById('me-place').value,
+    savedJobId:document.getElementById('me-job').value,
+    fpsCap:+document.getElementById('me-fps').value,
+    launchDelaySec:+document.getElementById('me-delay').value,
+    seqMinimize:document.getElementById('me-min').checked,
+    seqTrim:document.getElementById('me-trim').checked
+  });
+  closeModal('m-edit');
+}
+
+let gamePickerList = [];
+let pickedGame = null;
+let gamePickerLoading = false;
+let placeResolveTimer = null;
+
+function formatCompact(n){
+  const v = Number(n) || 0;
+  if(v >= 1000000000) return (v/1000000000).toFixed(1) + 'B';
+  if(v >= 1000000) return (v/1000000).toFixed(1) + 'M';
+  if(v >= 1000) return (v/1000).toFixed(1) + 'K';
+  return String(Math.round(v));
+}
+
+function setLaunchMode(m, silent){
+  launchMode = m || 'Game';
+  document.querySelectorAll('#modeSeg .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===launchMode));
+}
+function extractPlaceId(raw){
+  const m = String(raw||'').match(/\/games\/(\d+)/) || String(raw||'').match(/placeId=(\d+)/i) || String(raw||'').match(/^\s*(\d{3,})/);
+  return m ? m[1] : '';
+}
+function updatePlaceParsed(){
+  const pid = extractPlaceId(document.getElementById('l-place').value);
+  document.getElementById('l-place-parsed').textContent = 'Place ID: ' + (pid || '-');
+  return pid;
+}
+function onPlaceInput(){
+  const pid = updatePlaceParsed();
+  document.getElementById('srvPlace').value = pid;
+  clearTimeout(placeResolveTimer);
+  if(pid && pid.length >= 4){
+    placeResolveTimer = setTimeout(()=>resolveSelectedPlace(pid), 350);
+  }
+}
+async function resolveSelectedPlace(input){
+  try{
+    const j = await apiGet('api/games/resolve?input=' + encodeURIComponent(input));
+    if(j && j.ok && j.game){
+      pickedGame = j.game;
+      renderGamePicker();
+    }
+  }catch(e){}
+}
+async function loadGameDirectory(q){
+  gamePickerLoading = true;
+  renderGamePicker();
+  try{
+    const j = await apiGet('api/games/search?q=' + encodeURIComponent((q||'').trim()));
+    if(j && j.ok && Array.isArray(j.games)){
+      gamePickerList = j.games;
+      if(!pickedGame && gamePickerList.length > 0){
+        const curPid = extractPlaceId(document.getElementById('l-place').value);
+        pickedGame = gamePickerList.find(x=>String(x.PlaceId)===curPid) || null;
+      }
+    }
+  }catch(e){}
+  finally{
+    gamePickerLoading = false;
+    renderGamePicker();
+  }
+}
+function selectPickedGame(placeId){
+  const g = gamePickerList.find(x=>Number(x.PlaceId)===Number(placeId));
+  if(!g) return;
+  pickedGame = g;
+  document.getElementById('l-place').value = String(g.PlaceId);
+  document.getElementById('srvPlace').value = String(g.PlaceId);
+  updatePlaceParsed();
+  renderGamePicker();
+}
+function openServerBrowserForPickedGame(){
+  const pid = (pickedGame && pickedGame.PlaceId) || extractPlaceId(document.getElementById('l-place').value);
+  if(pid){
+    document.getElementById('srvPlace').value = String(pid);
+    switchSub('launch', 'launch-srv');
+    loadServers();
+  }
+}
+function renderGamePicker(){
+  const selEl = document.getElementById('selectedGameCard');
+  const gridEl = document.getElementById('gamePickerGrid');
+  if(!selEl || !gridEl) return;
+
+  if(pickedGame && pickedGame.PlaceId){
+    selEl.style.display = 'flex';
+    const thumb = pickedGame.IconUrl
+      ? `<img src="${esc(pickedGame.IconUrl)}" alt="${esc(pickedGame.Name)}" onerror="this.style.display='none'">`
+      : `<span class="mono muted" style="font-size:11px">RBX</span>`;
+    selEl.innerHTML = `<div class="gp-thumb">${thumb}</div>
+      <div style="flex:1;min-width:0">
+        <div class="row" style="gap:8px"><span class="ver-tag">${esc(t('gp_selected'))}</span><span class="mono muted" style="font-size:11.5px">Place ${esc(pickedGame.PlaceId)}</span></div>
+        <div style="font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">${esc(pickedGame.Name)}</div>
+        <div class="muted" style="font-size:12px">${esc(t('gp_creator'))}: <strong>${esc(pickedGame.Creator||'Roblox')}</strong> · ${esc(pickedGame.Genre||'All')} · ${esc(t('gp_ccu'))}: <strong>${formatCompact(pickedGame.Players)}</strong> · ${esc(t('gp_likes'))}: <strong>${pickedGame.LikeRatio||0}%</strong> · ${esc(t('gp_visits'))}: <strong>${formatCompact(pickedGame.Visits)}</strong></div>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" onclick="openServerBrowserForPickedGame()">${esc(t('gp_browse_srv'))}</button>`;
+  } else {
+    selEl.style.display = 'none';
+  }
+
+  if(gamePickerLoading){
+    gridEl.innerHTML = `<div class="muted" style="grid-column:1/-1;padding:12px 0">${esc(t('gp_loading'))}</div>`;
+    return;
+  }
+  if(!gamePickerList.length){
+    gridEl.innerHTML = `<div class="muted" style="grid-column:1/-1;padding:12px 0">${esc(t('gp_empty'))}</div>`;
+    return;
+  }
+  const activePid = pickedGame ? Number(pickedGame.PlaceId) : Number(extractPlaceId(document.getElementById('l-place').value));
+  gridEl.innerHTML = gamePickerList.map(g=>{
+    const isSel = activePid === Number(g.PlaceId);
+    const thumb = g.IconUrl ? `<img src="${esc(g.IconUrl)}" alt="${esc(g.Name)}" loading="lazy" onerror="this.style.display='none'">` : '';
+    return `<button type="button" class="gp-card ${isSel?'active':''}" onclick="selectPickedGame(${g.PlaceId})">
+      <div class="gp-card-thumb">${thumb}</div>
+      <div style="min-width:0;flex:1">
+        <div class="tile-title" style="font-weight:600;font-size:12.5px">${esc(g.Name)}</div>
+        <div class="tile-sub muted mono">${formatCompact(g.Players)} ${esc(t('gp_ccu'))} · ${g.LikeRatio||0}%</div>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function renderGfxPreview(){
+  const preset = document.getElementById('s-gfx').value;
+  const api = document.getElementById('s-api').value;
+  const fps = +document.getElementById('s-fps').value || 0;
+  const flags = {};
+  if(fps > 0) flags.DFIntTaskSchedulerTargetFps = fps;
+  if(api === 'D3D11') flags.FFlagDebugGraphicsPreferD3D11 = 'True';
+  else if(api === 'Vulkan') flags.FFlagDebugGraphicsPreferVulkan = 'True';
+  else if(api === 'OpenGL') flags.FFlagDebugGraphicsPreferOpenGL = 'True';
+  if(preset==='Low'){ flags.DFFlagTextureQualityOverrideEnabled='True'; flags.DFIntTextureQualityOverride='2'; flags.FIntDebugForceMSAASamples='1'; }
+  else if(preset==='Potato'){ flags.DFIntDebugFRMQualityLevelOverride='3'; flags.DFFlagTextureQualityOverrideEnabled='True'; flags.DFIntTextureQualityOverride='1'; flags.FIntDebugForceMSAASamples='1'; flags.FIntFRMMinGrassDistance='0'; flags.FIntFRMMaxGrassDistance='0'; flags.FFlagDebugSkyGray='True'; }
+  else if(preset==='Ultrapotato'){ flags.DFIntDebugFRMQualityLevelOverride='1'; flags.DFFlagTextureQualityOverrideEnabled='True'; flags.DFIntTextureQualityOverride='0'; flags.FIntDebugForceMSAASamples='1'; flags.FIntFRMMinGrassDistance='0'; flags.FIntFRMMaxGrassDistance='0'; flags.DFFlagDebugPauseVoxelizer='True'; flags.FFlagDebugSkyGray='True'; flags.DFIntCSGLevelOfDetailSwitchingDistance='0'; }
+  try{
+    const raw = document.getElementById('s-fflags').value.trim();
+    if(raw){ const obj = JSON.parse(raw); if(obj && typeof obj==='object') Object.assign(flags, obj); }
+  }catch(e){}
+  document.getElementById('gfxCodeBox').textContent = JSON.stringify(flags, null, 2);
+}
+
+function setLayoutMode(m, silent){
+  layoutMode = m || 'Auto';
+  document.querySelectorAll('#laySeg .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.lmode===layoutMode));
+  if(!silent) renderLayoutPreview();
+}
+function renderLayoutPreview(){
+  const p = document.getElementById('layoutPreview');
+  const mon = (state && state.monitors && state.monitors[0]) || {width:1920,height:1040};
+  document.getElementById('monInfoLbl').textContent = 'Monitor: ' + mon.width + ' × ' + mon.height + ' px';
+  const liveWins = (state && state.windows || []).filter(w=>w.hasWindow);
+  const borderless = document.getElementById('lay-borderless').checked;
+
+  if(liveWins.length > 0){
+    document.getElementById('tileCountLbl').textContent = liveWins.length + ' ' + t('live_lbl');
+    p.innerHTML = liveWins.map((w,i)=>{
+      const l=(w.x/mon.width*100).toFixed(1), top=(w.y/mon.height*100).toFixed(1), ww=(w.w/mon.width*100).toFixed(1), hh=(w.h/mon.height*100).toFixed(1);
+      return `<div class="tile-box ${borderless?'borderless':'framed'}" style="left:${l}%;top:${top}%;width:${ww}%;height:${hh}%"><strong class="tile-title">${esc(w.account||('Roblox #'+(i+1)))}</strong><span class="tile-sub muted mono">${w.w}×${w.h}</span></div>`;
+    }).join('');
+    return;
+  }
+
+  const n = +document.getElementById('lay-count').value || 4;
+  const gap = +document.getElementById('lay-gap').value || 0;
+  const margin = +document.getElementById('lay-margin').value || 0;
+  let cols = +document.getElementById('lay-cols').value || 0;
+  let rows = +document.getElementById('lay-rows').value || 0;
+  const W = mon.width || 1920, H = mon.height || 1040;
+  const iw = Math.max(200, W - margin*2), ih = Math.max(150, H - margin*2);
+  if(layoutMode === 'Auto' || (cols===0 && rows===0)){
+    cols = Math.max(1, Math.ceil(Math.sqrt(n * (iw / ih))));
+    rows = Math.max(1, Math.ceil(n / cols));
+  } else {
+    if(cols<=0) cols = Math.max(1, Math.ceil(n / Math.max(1, rows)));
+    if(rows<=0) rows = Math.max(1, Math.ceil(n / cols));
+  }
+  const tw = Math.floor((iw - gap * Math.max(0, cols-1)) / cols);
+  const th = Math.floor((ih - gap * Math.max(0, rows-1)) / rows);
+  document.getElementById('tileCountLbl').textContent = n + ' ' + t('tiles_lbl');
+  const boxes = [];
+  for(let i=0;i<n;i++){
+    const r = Math.floor(i/cols), c = i%cols;
+    const x = margin + c*(tw+gap), y = margin + r*(th+gap);
+    boxes.push(`<div class="tile-box ${borderless?'borderless':'framed'}" style="left:${(x/W*100).toFixed(1)}%;top:${(y/H*100).toFixed(1)}%;width:${(tw/W*100).toFixed(1)}%;height:${(th/H*100).toFixed(1)}%"><strong class="tile-title">Roblox #${i+1}</strong><span class="tile-sub muted mono">${tw}×${th}</span></div>`);
+  }
+  p.innerHTML = boxes.join('');
+}
+
+function renderMonitor(){
+  if(!state) return;
+  document.getElementById('winBody').innerHTML = (state.windows||[]).map(w=>`<tr>
+    <td class="mono">${w.pid}</td>
+    <td><strong>${esc(w.account||'Roblox')}</strong></td>
+    <td class="mono">${w.w}×${w.h}</td>
+    <td style="text-align:right" class="mono">${w.cpu.toFixed(1)}%</td>
+    <td style="text-align:right" class="mono">${w.ramMb} MB</td>
+    <td style="text-align:right">
+      <button type="button" class="btn btn-xs" onclick="apiPost('api/layout/focus',{pid:${w.pid}})">${esc(t('btn_focus'))}</button>
+      <button type="button" class="btn btn-xs" onclick="apiPost('api/layout/minimize',{pid:${w.pid}})">${esc(t('btn_min'))}</button>
+    </td>
+  </tr>`).join('') || `<tr><td colspan="6" class="muted" style="text-align:center;padding:24px">${esc(t('empty_win'))}</td></tr>`;
+}
+
+function renderRamChart(){
+  if(!state || !state.ramHistory || state.ramHistory.length < 2) return;
+  const arr = state.ramHistory;
+  const max = Math.max(...arr, 1024), min = Math.min(...arr, 0);
+  const span = Math.max(200, max - min);
+  const pts = arr.map((v,i)=>`${(16+(i/(arr.length-1))*568).toFixed(1)},${(152-((v-min)/span)*124).toFixed(1)}`).join(' ');
+  document.getElementById('ramPoly').setAttribute('points', pts);
+}
+
+async function loadServers(){
+  const p = extractPlaceId(document.getElementById('srvPlace').value || document.getElementById('l-place').value);
+  const s = document.getElementById('srvSort').value;
+  if(!p){ toast(t('srv_need_place')); return; }
+  const j = await apiGet('api/servers?placeId='+encodeURIComponent(p)+'&sort='+s);
+  document.getElementById('srvBody').innerHTML = (j.servers||[]).map(x=>`<tr>
+    <td class="mono" style="font-size:12px">${esc(x.Id)}</td>
+    <td style="text-align:right" class="mono">${x.Playing} / ${x.Max}</td>
+    <td style="text-align:right;color:${x.Ping<=65?'var(--good)':(x.Ping<=120?'var(--warn)':'var(--danger)')}" class="mono">${x.Ping} ms</td>
+    <td style="text-align:right" class="mono">${(x.Fps||0).toFixed(1)}</td>
+    <td style="text-align:right">
+      <div style="display:inline-flex;gap:6px">
+        <button type="button" class="btn btn-xs" onclick="copyText('${escJs(x.Id)}')">${esc(t('btn_copy'))}</button>
+        <button type="button" class="btn btn-primary btn-xs" onclick="useJob('${escJs(x.Id)}')">${esc(t('srv_use'))}</button>
+      </div>
+    </td>
+  </tr>`).join('') || `<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">${esc(j.error||t('srv_no_res'))}</td></tr>`;
+}
+function copyText(txt){ if(navigator.clipboard) navigator.clipboard.writeText(txt).catch(()=>{}); toast('Job ID: ' + txt); }
+function useJob(id){
+  setLaunchMode('Job');
+  document.getElementById('l-job').value = id;
+  switchSub('launch', 'launch-cfg');
+  toast('Job ID: ' + id);
+}
+
+function openClassicMacroWin(){
+  apiPost('api/macros/open-window', {});
+}
+
+function playWebMacro(file){
+  apiPost('api/macros/play',{
+    file,
+    targetAccountId:document.getElementById('mac-target').value,
+    speed:+document.getElementById('mac-speed').value || 1,
+    repeats:+document.getElementById('mac-repeats').value || 1,
+    continuous:document.getElementById('mac-loop').checked,
+    jitterMs:+document.getElementById('mac-jms').value || 0
+  });
+}
+
+function stopWebMacro(){ apiPost('api/macros/stop',{}); }
+function toggleWebRecord(){
+  if(state && state.macroRecording){
+    apiPost('api/macros/record-stop',{
+      name:(document.getElementById('mac-name').value||'').trim() || ('macro_' + Date.now()),
+      trimIdle:document.getElementById('mac-trim').checked,
+      speed:+document.getElementById('mac-speed').value || 1,
+      repeats:+document.getElementById('mac-repeats').value || 1,
+      jitterMs:+document.getElementById('mac-jms').value || 0
+    });
+  } else {
+    apiPost('api/macros/record-start',{
+      recordMoves:document.getElementById('mac-moves').checked,
+      hiRes:true
+    });
+  }
+}
+
+function renderPresets(){
+  if(!state || !state.settings) return;
+  const ps = state.settings.Presets || [];
+  document.getElementById('presetList').innerHTML = ps.map(p=>`<div class="between" style="padding:12px 0;border-bottom:1px solid var(--border)">
+    <div><strong>${esc(p.Name)}</strong><div class="muted mono">${(p.Entries||[]).length} ${esc(t('accs_lbl'))}</div></div>
+    <div class="row">
+      <button type="button" class="btn btn-primary btn-xs" onclick="apiPost('api/presets/load',{name:'${escJs(p.Name)}'})">${esc(t('pre_load'))}</button>
+      <button type="button" class="btn btn-xs" onclick="apiPost('api/presets/delete',{name:'${escJs(p.Name)}'})">${esc(t('btn_del'))}</button>
+    </div>
+  </div>`).join('') || `<div class="muted">${esc(t('empty_pre'))}</div>`;
+
+  const tgt = document.getElementById('mac-target');
+  if(tgt){
+    const cur = tgt.value;
+    tgt.innerHTML = `<option value="">${esc(t('mac_active_win'))}</option>` + (state.accounts||[]).map(a=>`<option value="${esc(a.id)}">${esc(a.username||a.name)}</option>`).join('');
+    tgt.value = cur;
+  }
+  const stopBtn = document.getElementById('macStopBtn');
+  if(stopBtn) stopBtn.style.display = state.macroPlaying ? 'inline-flex' : 'none';
+  const recBtn = document.getElementById('macRecBtn');
+  if(recBtn){
+    recBtn.textContent = state.macroRecording ? t('mac_rec_stop') : t('mac_rec');
+    recBtn.className = state.macroRecording ? 'btn btn-danger btn-xs' : 'btn btn-primary btn-xs';
+  }
+  const live = document.getElementById('macLiveStatus');
+  if(live){
+    if(state.macroRecording) live.textContent = (lang==='pl' ? 'NAGRYWANIE... Kroków: ' : 'RECORDING... Steps: ') + (state.macroRecordedSteps || 0);
+    else if(state.macroPlaying) live.textContent = (lang==='pl' ? 'Odtwarzanie: ' : 'Playing: ') + (state.macroActiveName || '.v9m');
+    else live.textContent = lang==='pl' ? 'Gotowy · Użyj F9 (Nagraj/Stop) i F10 (Odtwórz/Stop) w oknie Makra lub nagraj tutaj.' : 'Ready · Press F9 (Record/Stop) & F10 (Play/Stop) in Macro Window or record here.';
+  }
+
+  const ml = document.getElementById('macLibList');
+  if(ml){
+    const macros = state.macros || [];
+    ml.innerHTML = macros.map(m=>`<div class="between" style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div><strong>${esc(m.name)}</strong><div class="muted mono">${esc(m.file)} · ${m.steps} ${esc(t('steps_lbl'))} · ${(m.lengthMs/1000).toFixed(1)}s</div></div>
+      <div class="row">
+        <button type="button" class="btn btn-primary btn-xs" onclick="playWebMacro('${escJs(m.file)}')">${esc(t('btn_start'))}</button>
+        <button type="button" class="btn btn-xs" onclick="apiPost('api/macros/delete',{file:'${escJs(m.file)}'})">${esc(t('btn_del'))}</button>
+      </div>
+    </div>`).join('') || `<div class="muted">${esc(t('mac_empty'))}</div>`;
+  }
+}
+
+function renderLogs(){
+  if(!state) return;
+  const box = document.getElementById('logBox');
+  box.innerHTML = (state.logs||[]).map(l=>`<div><span class="muted">${esc(l.Time)}</span>  ${esc(l.Message)}</div>`).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+function saveQuickSettings(){
+  apiPost('api/settings',{
+    lastMode:launchMode,
+    lastPlaceId:document.getElementById('l-place').value,
+    lastJobId:document.getElementById('l-job').value,
+    lastPrivate:document.getElementById('l-priv').value,
+    lastFollow:document.getElementById('l-follow').value,
+    launchDelaySec:+document.getElementById('s-delay').value,
+    fpsCap:+document.getElementById('s-fps').value,
+    gfxPreset:document.getElementById('s-gfx').value,
+    gfxApi:document.getElementById('s-api').value,
+    autoTileOnBatch:document.getElementById('s-autotile').checked,
+    customClientSettings:document.getElementById('s-fflags').value
+  });
+}
+function saveLayoutSettings(){
+  apiPost('api/settings',{
+    layoutMode:layoutMode,
+    layoutRows:+document.getElementById('lay-rows').value,
+    layoutCols:+document.getElementById('lay-cols').value,
+    layoutGap:+document.getElementById('lay-gap').value,
+    layoutMargin:+document.getElementById('lay-margin').value,
+    layoutBorderless:document.getElementById('lay-borderless').checked
+  });
+}
+function applyLayoutNow(){ saveLayoutSettings(); apiPost('api/layout/apply',{}); }
+function saveEco(){
+  apiPost('api/settings',{
+    maxAlts:document.getElementById('eco-on').checked,
+    maxAltsFps:+document.getElementById('eco-fps').value,
+    maxAltsTrimMinMb:+document.getElementById('eco-minmb').value,
+    maxAltsCores:+document.getElementById('eco-cores').value,
+    maxAltsIdle:document.getElementById('eco-idle').checked,
+    maxAltsTrimSmart:document.getElementById('eco-trim').checked,
+    maxAltsMinimize:document.getElementById('eco-min').checked,
+    memThreshold:+document.getElementById('mem-thresh').value
+  });
+}
+function savePreset(){ apiPost('api/presets/save',{name:document.getElementById('presetName').value}); document.getElementById('presetName').value=''; }
+function pulseAfkNow(){ apiPost('api/afk/pulse',{}); }
+function saveAfkAndGuard(){
+  apiPost('api/settings',{
+    antiAfk:document.getElementById('afk-on').checked,
+    antiAfkMin:+document.getElementById('afk-min').value,
+    antiAfkAction:document.getElementById('afk-act').value,
+    autoRelaunch:document.getElementById('afk-watch').checked,
+    autoReconnectKick:document.getElementById('afk-reconn').checked,
+    watcherSec:+document.getElementById('afk-wsec').value || 30,
+    crashBreaker:document.getElementById('afk-cb').checked,
+    crashBreakerMax:+document.getElementById('afk-cbmax').value || 3,
+    crashBreakerWindowMin:+document.getElementById('afk-cbwin').value || 15,
+    crashBreakerCooldownMin:+document.getElementById('afk-cbcd').value || 30,
+    ghostMin:+document.getElementById('afk-ghost').value || 0,
+    lockIdleMin:+document.getElementById('afk-lockmin').value || 0,
+    scheduleEnabled:document.getElementById('sch-on').checked,
+    scheduleRestartHours:+document.getElementById('sch-hours').value || 0,
+    scheduleStartTime:document.getElementById('sch-start').value.trim(),
+    scheduleStopTime:document.getElementById('sch-stop').value.trim(),
+    scheduleGroup:document.getElementById('sch-grp').value.trim()
+  });
+}
+function saveGeneralSettings(){
+  apiPost('api/settings',{
+    multiInstance:document.getElementById('set-multi').checked,
+    memAutoClean:document.getElementById('set-memclean').checked,
+    globalHotkeys:document.getElementById('set-hotkeys').checked
+  });
+}
+async function exportVaultFile(){
+  const pw = document.getElementById('vaultPw').value;
+  if(!pw){ toast(lang==='pl' ? 'Wpisz hasło szyfrujące .v9vault.' : 'Enter .v9vault encryption password.'); return; }
+  const res = await apiPost('api/vault/export',{password:pw});
+  if(res && res.ok && res.content){
+    const blob = new Blob([res.content], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = res.fileName || 'v9-MultiRLBX-backup.v9vault';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
+    toast(res.fileName || 'Backup .v9vault saved.');
+  }
+}
+function importVaultFile(input){
+  const f = input && input.files && input.files[0];
+  if(!f) return;
+  const pw = document.getElementById('vaultPw').value;
+  if(!pw){ toast(lang==='pl' ? 'Wpisz hasło aby odszyfrować .v9vault.' : 'Enter password to decrypt .v9vault.'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = async ()=>{
+    await apiPost('api/vault/import',{content:String(reader.result||''), password:pw});
+  };
+  reader.readAsText(f);
+  input.value='';
+}
+async function checkUpdatesNow(){
+  const btn = document.getElementById('updCheckBtn');
+  btn.disabled = true;
+  try{
+    const res = await apiPost('api/update/check',{});
+    const lbl = document.getElementById('updResult');
+    if(res && res.newer) lbl.textContent = t('upd_new') + res.latest + ' (' + (res.downloadUrl||'') + ')';
+    else if(res && res.ok) lbl.textContent = t('upd_up_to_date') + (res.current||'1.0.0');
+    else lbl.textContent = (res && res.error) || t('upd_failed');
+  }finally{ btn.disabled = false; }
+}
+function saveWebhookSettings(){
+  apiPost('api/settings',{
+    webhook:document.getElementById('wh-on').checked,
+    webhookUrl:document.getElementById('wh-url').value,
+    webhookStatusUrl:document.getElementById('wh-status').value,
+    webhookCrash:document.getElementById('wh-crash').checked,
+    webhookLocked:document.getElementById('wh-lock').checked,
+    webhookBatch:document.getElementById('wh-batch').checked,
+    dailyReport:document.getElementById('wh-daily').checked
+  });
+}
+async function testWebhook(){
+  const res = await apiPost('api/webhook/test',{url:document.getElementById('wh-url').value, lang});
+  const el = document.getElementById('whResult');
+  el.style.display='flex';
+  el.className = 'banner ' + (res.ok ? '' : 'err');
+  el.textContent = res.ok ? (res.message || 'OK') : (res.error || 'Error');
+}
+function copyWebUrl(){
+  const url = (state && state.localUrl) || location.href;
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>toast('URL: '+url)); }
+  else toast(url);
+}
+
+const ONBOARDING_STEPS = {
+  pl: [
+    {
+      title: 'Multi-Instance i Konta Roblox (v1.0.0)',
+      quote: 'Wiele okien Robloxa na jednym komputerze przy użyciu natywnego mutexa i protokołu roblox-player.',
+      desc: 'Lekka aplikacja desktopowa w C# 5 dla Windows 10/11. Wszystkie konfiguracje oraz tokeny sesji przechowywane są wyłącznie lokalnie.',
+      bullets: [
+        'Kompilacja 1-klikiem przez Run.bat lub Build.bat bez konieczności instalacji Visual Studio.',
+        'Prawdziwe awatary Roblox pobierane po nazwie użytkownika lub UserID z czytelnym zapasowym portretem.',
+        'Pełny przełącznik PL / EN, tryb ciemny/jasny oraz 5 wariantów akcentu kolorystycznego.'
+      ],
+      tab: 'accounts',
+      mood: 'boss',
+      seed: 'NoobBoss_v9'
+    },
+    {
+      title: '5 metod dodawania i podgląd Live Presence',
+      quote: 'QR Quick Login, izolowane okno Chromium, bezpośrednie cookie, hurtowy import .txt oraz JSON.',
+      desc: 'Jedno okno Zaloguj / Dodaj obsługuje wszystkie przepływy autoryzacji oraz grupowanie kont.',
+      bullets: [
+        'Skanowanie QR w aplikacji mobilnej lub izolowane logowanie Chromium bez wylogowywania obecnych sesji.',
+        'Równoległe sprawdzanie cookies i Live Presence pokazujące status InGame lub Website.',
+        'Organizacja kont za pomocą grup, aliasów oraz #tagów.'
+      ],
+      tab: 'accounts',
+      mood: 'sneaky',
+      seed: 'AltCollector_99'
+    },
+    {
+      title: 'Wyszukiwarka gier, Anti-AFK i makra .v9m',
+      quote: 'Szybkie wybieranie gry po nazwie, automatyczny powrót po kicku oraz bezpieczne makra.',
+      desc: 'W zakładce Start & Serwery wyszukasz grę z podglądem statystyk, a w Anti-AFK zabezpieczysz sesję przed wyłączeniem.',
+      bullets: [
+        'Wyszukiwarka gier wyświetla ikonę, liczbę graczy online (CCU), polubienia oraz listę serwerów.',
+        'Impulsy Anti-AFK wstrzymują się automatycznie podczas odtwarzania makr .v9m.',
+        'Watchdog + Auto-Reconnect oraz nagrywarka makr (F9 / F10) z pętlą ciągłą.'
+      ],
+      tab: 'afk',
+      mood: 'wired',
+      seed: 'NightGrinder_3AM'
+    },
+    {
+      title: 'Smart Eco, Układ okien i kopie .v9vault',
+      quote: 'Redukcja zużycia RAM i klatek w tle, kafelkowanie siatki i zaszyfrowane kopie zapasowe.',
+      desc: 'Smart Eco ogranicza obciążenie nieaktywnych okien, a .v9vault szyfruje całą konfigurację jednym hasłem.',
+      bullets: [
+        'Smart Eco przycina RAM i ogranicza FPS oraz rdzenie CPU dla okien w tle.',
+        'Globalne skróty: Ctrl+Shift+T (Siatka), Ctrl+Shift+M (Wyczyść RAM), Ctrl+Shift+K (Stop All).',
+        'Zaszyfrowany eksport/import .v9vault (AES-256 + HMAC) oraz sprawdzanie wydań GitHub.'
+      ],
+      tab: 'settings',
+      mood: 'zen',
+      seed: 'RamPlumber_Zen'
+    }
+  ],
+  en: [
+    {
+      title: 'Multi-Instance & Roblox Accounts (v1.0.0)',
+      quote: 'Run multiple Roblox clients cleanly using the native singleton mutex and roblox-player URI protocol.',
+      desc: 'A lightweight C# 5 desktop control panel for Windows 10/11. All session data and settings remain strictly local on your machine.',
+      bullets: [
+        '1-click compile via Run.bat or Build.bat without installing Visual Studio.',
+        'Real Roblox avatar headshots fetched by username or UserID with clean fallback portraits.',
+        'Instant PL / EN switch, Dark / Light theme, and 5 accent colors.'
+      ],
+      tab: 'accounts',
+      mood: 'boss',
+      seed: 'NoobBoss_v9'
+    },
+    {
+      title: '5 Sign-In Flows & Live Presence',
+      quote: 'Phone QR, isolated Chromium browser login, direct cookie, bulk .txt, and JSON import.',
+      desc: 'One Login / Add dialog covers all authentication flows alongside groups, aliases, and tags.',
+      bullets: [
+        'QR Quick Login or isolated Chromium profile without logging out existing accounts.',
+        'Concurrent cookie validation and Live Presence showing InGame vs Website status.',
+        'Group filtering, custom aliases, and #tags to organize large account sets.'
+      ],
+      tab: 'accounts',
+      mood: 'sneaky',
+      seed: 'AltCollector_99'
+    },
+    {
+      title: 'Game Picker, Anti-AFK & .v9m Macros',
+      quote: 'Search Roblox games by name, recover automatically from disconnects, and replay .v9m macros.',
+      desc: 'Search trending or named games in Launch & Servers, then configure session uptime protection in Anti-AFK.',
+      bullets: [
+        'Game Picker shows game icons, live CCU player counts, likes, visits, and server browser.',
+        'Anti-AFK pulses automatically pause whenever a .v9m macro is recording or playing.',
+        'Watchdog + Auto-Reconnect and F9 / F10 classic macro recorder with continuous loop.'
+      ],
+      tab: 'afk',
+      mood: 'wired',
+      seed: 'NightGrinder_3AM'
+    },
+    {
+      title: 'Smart Eco, Window Layout & .v9vault',
+      quote: 'Background throttling, multi-window grid tiling, and encrypted single-file backups.',
+      desc: 'Smart Eco caps background FPS and trims RAM, while .v9vault protects accounts behind PBKDF2 + AES-256 encryption.',
+      bullets: [
+        'Smart Eco trims idle working sets and caps background FPS and CPU cores automatically.',
+        'Global hotkeys: Ctrl+Shift+T (Auto-Tile), Ctrl+Shift+M (Clean RAM), Ctrl+Shift+K (Stop All).',
+        'PBKDF2 + AES-256 .v9vault backup export/import plus GitHub release check.'
+      ],
+      tab: 'settings',
+      mood: 'zen',
+      seed: 'RamPlumber_Zen'
+    }
+  ]
+};
+
+let onboardIdx = 0;
+function renderOnboardingStep(idx){
+  const list = ONBOARDING_STEPS[lang] || ONBOARDING_STEPS.pl;
+  onboardIdx = Math.max(0, Math.min(list.length - 1, idx));
+  const cur = list[onboardIdx];
+  document.getElementById('onbStepCounter').textContent = (onboardIdx + 1) + ' / ' + list.length;
+  document.getElementById('onbTitle').textContent = cur.title;
+  document.getElementById('onbQuote').textContent = '"' + cur.quote + '"';
+  document.getElementById('onbDesc').textContent = cur.desc;
+  document.getElementById('onbMascot').innerHTML = renderBlockySvg(cur.seed, cur.mood, 68, '');
+  document.getElementById('onbBullets').innerHTML = cur.bullets.map(b=>'<div><span style="color:var(--accent);font-family:var(--mono);font-weight:700">&gt;</span> ' + esc(b) + '</div>').join('');
+  document.querySelectorAll('#onbBars .onb-bar').forEach((b,i)=>b.classList.toggle('active', i <= onboardIdx));
+  document.getElementById('onbBackBtn').style.display = onboardIdx === 0 ? 'none' : 'inline-flex';
+  document.getElementById('onbNextBtn').textContent = onboardIdx === list.length - 1 ? t('btn_finish') : t('btn_next');
+}
+function openOnboarding(idx){
+  renderOnboardingStep(typeof idx === 'number' ? idx : 0);
+  openModal('m-onboard');
+}
+function closeOnboarding(){
+  try{
+    if(document.getElementById('onbDontShow').checked) localStorage.setItem('v9_multirlbx_onboarded', '1');
+    else localStorage.removeItem('v9_multirlbx_onboarded');
+  }catch(e){}
+  closeModal('m-onboard');
+}
+function stepOnboarding(delta){
+  const list = ONBOARDING_STEPS[lang] || ONBOARDING_STEPS.pl;
+  if(onboardIdx + delta >= list.length){ closeOnboarding(); return; }
+  renderOnboardingStep(onboardIdx + delta);
+}
+function jumpFromOnboarding(){
+  const list = ONBOARDING_STEPS[lang] || ONBOARDING_STEPS.pl;
+  const target = (list[onboardIdx] && list[onboardIdx].tab) || 'accounts';
+  closeOnboarding();
+  switchTab(target);
+}
+
+applyChrome();
+renderLayoutPreview();
+renderGfxPreview();
+loadGameDirectory('');
+refresh();
+setInterval(refresh, 2200);
+try{ if(localStorage.getItem('v9_multirlbx_onboarded') !== '1') openOnboarding(0); }catch(e){}
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+# Build output & release artifacts
+*.exe
+*.pdb
+*.obj
+*.zip
+SHA256SUMS.txt
+bin/
+obj/
+installer/Output/
+
+# Local user data (%APPDATA%\MultiRLBX) if pointed at the project root
+accounts.dat
+accounts.dat.old
+accounts.dat.tmp
+settings.json
+settings.json.tmp
+log.txt
+audit.log
+memclean.json
+memclean.json.tmp
+memclean.request
+Backups/
+avatars/
+lang/
+ShellProfile/
+macros/
+*.v9m
+
+# Editor / OS metadata
+.vs/
+.vscode/
+*.user
+Thumbs.db
+desktop.ini
+
+# Publish script logs & temporary files
+publish-github.log
+.v9_cmd_out.tmp
+.v9_write_test.tmp
+

@@ -1,0 +1,111 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify C# 5.0 compatibility & balanced syntax
+        shell: pwsh
+        run: |
+          $csFiles = Get-ChildItem -Path src -Filter *.cs -Recurse
+          foreach ($f in $csFiles) {
+            $txt = Get-Content -Raw -Path $f.FullName
+            if ($txt -match '\$"') { Write-Error "C# 6+ interpolated string found in $($f.Name)"; exit 1 }
+          }
+          Write-Host "Verified $($csFiles.Count) C# source files."
+
+      - name: Compile v9 MultiRLBX.exe (.NET Framework 4 csc.exe)
+        shell: pwsh
+        run: |
+          $csc = "$env:windir\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          if (-not (Test-Path $csc)) { $csc = "$env:windir\Microsoft.NET\Framework\v4.0.30319\csc.exe" }
+          if (-not (Test-Path $csc)) { Write-Error "csc.exe not found"; exit 1 }
+          & $csc /nologo /target:winexe /optimize+ /debug- /warn:1 `
+            /nowarn:0168,0219,0414,0649,0169,0067 `
+            /out:"v9 MultiRLBX.exe" /win32icon:app.ico /win32manifest:app.manifest `
+            /resource:ui\app.html,MultiRLBX.app.html `
+            /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll `
+            /r:System.Web.Extensions.dll /r:System.Net.Http.dll /r:System.Security.dll /r:System.Management.dll `
+            /recurse:src\*.cs
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path "v9 MultiRLBX.exe")) {
+            Write-Error "Build failed or produced no exe"
+            exit 1
+          }
+
+      - name: Build Windows Installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress | Out-Null
+            $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          if (-not (Test-Path $iscc)) { Write-Error "ISCC.exe not found"; exit 1 }
+          & $iscc "installer\MultiRLBX.iss"
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path "installer\Output\v9-MultiRLBX-Setup.exe")) {
+            Write-Error "Inno Setup installer build failed"
+            exit 1
+          }
+          Move-Item -Force "installer\Output\v9-MultiRLBX-Setup.exe" "v9-MultiRLBX-Setup.exe"
+
+      - name: Package Portable ZIP & SHA256SUMS
+        shell: pwsh
+        run: |
+          $stage = Join-Path $env:RUNNER_TEMP "v9-MultiRLBX-portable"
+          if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
+          New-Item -ItemType Directory -Path $stage | Out-Null
+
+          foreach ($item in @("v9 MultiRLBX.exe", "Run.bat", "Build.bat", "app.ico", "app.manifest", "VERSION", "README.md", "LICENSE", "CHANGES.md", "ui", "docs", "installer")) {
+            if (Test-Path $item) {
+              Copy-Item -Recurse -Force $item (Join-Path $stage $item)
+            }
+          }
+          if (Test-Path (Join-Path $stage "installer\Output")) {
+            Remove-Item -Recurse -Force (Join-Path $stage "installer\Output")
+          }
+
+          Compress-Archive -Path "$stage\*" -DestinationPath "v9-MultiRLBX-win-portable.zip" -Force
+
+          $artifacts = @("v9 MultiRLBX.exe", "v9-MultiRLBX-win-portable.zip", "v9-MultiRLBX-Setup.exe")
+          $lines = foreach ($file in $artifacts) {
+            $hash = (Get-FileHash $file -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $file"
+          }
+          $lines | Out-File -Encoding ascii "SHA256SUMS.txt"
+          Get-Content "SHA256SUMS.txt"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: v9-MultiRLBX-win
+          path: |
+            v9 MultiRLBX.exe
+            v9-MultiRLBX-win-portable.zip
+            v9-MultiRLBX-Setup.exe
+            SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Publish GitHub Release on version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v9 MultiRLBX ${{ github.ref_name }}"
+          generate_release_notes: true
+          files: |
+            v9 MultiRLBX.exe
+            v9-MultiRLBX-win-portable.zip
+            v9-MultiRLBX-Setup.exe
+            SHA256SUMS.txt

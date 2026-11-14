@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>v9 MultiRLBX v1.0.0 · by v9pv</title>
+<link rel="icon" type="image/png" href="../.github/assets/logo.png">
+<style>
+  :root{
+    --bg:#0b0f17; --panel:#121823; --panel2:#182030; --line:#232c3f;
+    --text:#eef2f7; --muted:#94a3b8; --accent:#10b981; --accent2:#06b6d4; --accent-ink:#052e1f;
+    --font:'Segoe UI Variable','Segoe UI',system-ui,-apple-system,sans-serif;
+    --mono:'JetBrains Mono','Cascadia Code','Consolas',monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1100px 420px at 15% -10%, rgba(16,185,129,.12), transparent 60%), var(--bg);color:var(--text);font-family:var(--font);line-height:1.6}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+  nav{padding:18px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .nav-brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.05rem;color:var(--text);text-decoration:none}
+  .nav-brand img{width:34px;height:34px;border-radius:8px}
+  .nav-links{display:flex;align-items:center;gap:18px;font-size:.9rem}
+  .nav-links a{color:var(--muted);text-decoration:none;font-weight:500}
+  .nav-links a:hover{color:var(--text)}
+  header{padding:68px 0 56px;border-bottom:1px solid var(--line)}
+  .hero{display:flex;align-items:center;gap:32px;flex-wrap:wrap}
+  .hero-logo{width:104px;height:104px;border-radius:22px;box-shadow:0 18px 45px rgba(0,0,0,.45);flex-shrink:0}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.8rem;color:var(--accent);margin-bottom:10px}
+  h1{font-size:clamp(2.2rem,5vw,3.3rem);letter-spacing:-.03em;margin:0 0 12px;line-height:1.1}
+  .lead{color:var(--muted);max-width:60ch;font-size:1.05rem;margin:0 0 24px}
+  .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:8px;font-weight:600;text-decoration:none;border:1px solid var(--line);color:var(--text);background:var(--panel2);font-size:.92rem}
+  .btn:hover{border-color:#3b4963}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  section{padding:52px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:1.6rem;margin:0 0 20px;letter-spacing:-.02em}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px}
+  .card h3{margin:0 0 8px;font-size:1.04rem}
+  .card p{margin:0;color:var(--muted);font-size:.93rem}
+  pre{background:#020617;border:1px solid var(--line);border-radius:10px;padding:16px;font-family:var(--mono);font-size:.85rem;color:#6ee7b7;overflow:auto}
+  footer{padding:28px 0;color:var(--muted);font-size:.88rem}
+  footer a{color:var(--text);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}.nav-links{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="nav-brand" href="#">
+      <img src="../.github/assets/logo.png" alt="v9 MultiRLBX">
+      <span>v9 MultiRLBX <span style="color:var(--muted);font-weight:500">v1.0.0</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Funkcje</a>
+      <a href="#macro">Makra .v9m</a>
+      <a href="#start">Szybki start</a>
+      <a href="https://github.com/nielopek364-netizen/" target="_blank" rel="noopener">GitHub (v9pv)</a>
+    </div>
+  </nav>
+</div>
+
+<header>
+  <div class="wrap hero">
+    <img class="hero-logo" src="../.github/assets/logo.png" alt="v9 MultiRLBX icon">
+    <div style="flex:1;min-width:260px">
+      <div class="eyebrow">v1.0.0 · OPEN SOURCE WINDOWS UTILITY · AUTHOR: v9pv</div>
+      <h1>v9 MultiRLBX</h1>
+      <p class="lead">Nowoczesny, wielokontowy launcher i menedżer wydajności dla Robloxa na Windows. Bez zbędnych dodatków: szybki interfejs desktopowy, Smart Eco, układanie okien, własny system makr <code>.v9m</code> i pełne szyfrowanie lokalne.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#start">Kompilacja (Build.bat)</a>
+        <a class="btn" href="#macro">System Makr .v9m</a>
+        <a class="btn" href="https://github.com/nielopek364-netizen/" target="_blank" rel="noopener">GitHub · v9pv</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <h2>Architektura v1.0.0</h2>
+    <div class="grid">
+      <div class="card"><h3>Nowoczesny UI (Non-WinForms)</h3><p>Chromeless powłoka desktopowa + tray host z wbudowanym przełącznikiem PL / EN, trybem Dark/Light oraz 5 kolorami akcentów.</p></div>
+      <div class="card"><h3>Smart Eco &amp; RAM Cleaner</h3><p>Wątkowo bezpieczny silnik Max Alts z cache'owaniem stanu PID, rezerwacją rdzeni CPU i progiem przycinania pamięci roboczej.</p></div>
+      <div class="card"><h3>Siatka okien &amp; Presety</h3><p>Automatyczne kafelkowanie wielu klientów Roblox na wybranych monitorach, autorski układ okien i presety FFlags.</p></div>
+      <div class="card"><h3>Custom Makra (.v9m)</h3><p>Autorski format #v9m 2: nagrywanie hookami bezpośrednio w panelu HTML, kroki Wait/Key/Click, jitter humanizacji i fokus konta.</p></div>
+      <div class="card"><h3>Watchdog &amp; Crash Breaker</h3><p>Automatyczny restart po crashu z ochroną przed pętlą awarii, wykrywaniem zawieszonych okien (Ghost Killer) i Anti-AFK.</p></div>
+      <div class="card"><h3>Bezpieczeństwo lokalne</h3><p>Cookies chronione DPAPI lub AES-256 + HMAC. Panel UI działa wyłącznie na localhost (<code>127.0.0.1</code>) z tokenem sesji i zero telemetrii.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="macro">
+  <div class="wrap">
+    <h2>Autorski format makr <code>.v9m</code></h2>
+    <pre>#v9m 2
+#name=Farm Auto Jump &amp; Collect
+#author=v9pv
+#speed=1
+#repeats=5
+#jitterMs=20
+#jitterPx=3
+0 5 500 0 0 0 0
+500 4 32 0 0 0 0
+560 4 32 0 1 0 0</pre>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <h2>Szybki start</h2>
+    <div class="grid">
+      <div class="card"><h3>1. Pobierz z GitHuba</h3><p>Sklonuj repozytorium z profilu <a href="https://github.com/nielopek364-netizen/" target="_blank" rel="noopener" style="color:var(--accent)">github.com/nielopek364-netizen</a> lub rozpakuj paczkę ZIP.</p></div>
+      <div class="card"><h3>2. Kompilacja 1-klikiem</h3><p>Uruchom <code>Run.bat</code>, a Windows automatycznie skompiluje aplikację używając .NET Framework 4 i otworzy panel.</p></div>
+      <div class="card"><h3>3. Dodaj konta i makra</h3><p>Zaimportuj konta w zakładce Konta i utwórz własne sekwencje <code>.v9m</code> w Studio Makr.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:12px">
+    <span>v9 MultiRLBX v1.0.0 · Autor: <strong>v9pv</strong> · <a href="https://github.com/nielopek364-netizen/" target="_blank" rel="noopener">https://github.com/nielopek364-netizen/</a> · GPL-3.0</span>
+    <span>Aplikacja nie jest powiązana z Roblox Corporation.</span>
+  </div>
+</footer>
+</body>
+</html>
